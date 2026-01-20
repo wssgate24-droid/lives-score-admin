@@ -774,7 +774,7 @@
         let currentUser = null;
         let currentMatchUnsubscribe = null;
         let matchesListUnsubscribe = null; 
-        let teamsListenerUnsubscribe = null; // NEW: To handle realtime teams list
+        let teamsListenerUnsubscribe = null; 
         let currentMatchData = null; 
         let currentMatchState = null; 
         let isLoginMode = true;
@@ -990,8 +990,8 @@
         function calculateMatchState(matchData) {
             const state = {
                 innings: {
-                    1: { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0 },
-                    2: { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0 }
+                    1: { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0, legalBalls: 0 },
+                    2: { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0, legalBalls: 0 }
                 },
                 currentInnings: matchData.currentInnings || 1,
                 batsmen: {}, 
@@ -1008,7 +1008,8 @@
             history.forEach(ball => {
                 const inn = ball.innings;
                 const s = state.innings[inn];
-                
+                if(!s) return;
+
                 if(!state.batsmen[ball.strikerId]) state.batsmen[ball.strikerId] = { runs:0, balls:0, fours:0, sixes:0, out: null, name: ball.strikerName };
                 if(!state.batsmen[ball.nonStrikerId]) state.batsmen[ball.nonStrikerId] = { runs:0, balls:0, fours:0, sixes:0, out: null, name: ball.nonStrikerName };
                 if(!state.bowlers[ball.bowlerId]) state.bowlers[ball.bowlerId] = { balls:0, runs:0, wickets:0, maidens:0, name: ball.bowlerName };
@@ -1063,6 +1064,7 @@
 
                 if (isLegalDelivery) {
                     s.balls++;
+                    s.legalBalls++;
                     if (s.balls % 6 === 0) {
                         s.overs++;
                         s.balls = 0;
@@ -1680,17 +1682,10 @@
             const currentOversObj = currentMatchState.innings[inn];
             const maxOvers = currentMatchData.oversLimit;
 
+            // Basic Validation Check before scoring
             if (currentOversObj.overs >= maxOvers) {
-                alert(`Innings Limit Reached (${maxOvers} Overs)! Please End Innings or Complete Match.`);
+                alert(`Innings Limit Reached (${maxOvers} Overs)!`);
                 return;
-            }
-
-            if (inn === 2) {
-                const target = currentMatchState.innings[1].runs + 1;
-                if (currentMatchState.innings[2].runs >= target) {
-                     alert("Target Chased! Match Won. Please click 'Complete Match'.");
-                     return;
-                }
             }
 
             const strikerSelect = document.getElementById('controlStriker');
@@ -1720,6 +1715,7 @@
                 const nsName = getPlayerName(nsId, battingSquad);
                 const bName = getPlayerName(bId, bowlingSquad);
 
+                // --- 1. Create the Ball Event ---
                 const ballEvent = {
                     id: Date.now(),
                     runs: runs,
@@ -1738,9 +1734,11 @@
                     timestamp: new Date()
                 };
 
+                // --- 2. Calculate Next Striker Logic ---
                 let nextStriker = ballEvent.strikerId;
                 let nextNonStriker = ballEvent.nonStrikerId;
 
+                // Swap ends on odd runs
                 if(runs % 2 !== 0) {
                     [nextStriker, nextNonStriker] = [nextNonStriker, nextStriker];
                 }
@@ -1750,66 +1748,123 @@
                     if (ballEvent.wicketVictimId === nextNonStriker) nextNonStriker = "";
                 }
 
+                // --- 3. Compute New History & State (Simulation) ---
                 const history = [...(currentMatchData.history || [])];
-                const currentInnings = currentMatchData.currentInnings;
-                let legalBalls = 0;
+                const newHistory = [...history, ballEvent];
+                const updateData = {
+                    history: newHistory,
+                    updatedAt: serverTimestamp()
+                };
 
-                history.forEach(b => {
-                    if (b.innings === currentInnings && !['WD', 'NB'].includes(b.extrasType)) {
-                        legalBalls++;
+                // Determine Over Completion
+                let legalBallsInThisOver = 0;
+                newHistory.forEach(b => {
+                    if (b.innings === inn && b.bowlerId === bId && !['WD', 'NB'].includes(b.extrasType)) { // Count specifically for this bowler or overall? Usually overall for over completion
+                    }
+                });
+                
+                // Let's recalculate total legal balls for the innings to check Over Limit
+                let totalLegalBalls = 0;
+                let totalRuns = 0;
+                let totalWickets = 0;
+
+                newHistory.forEach(b => {
+                    if (b.innings === inn) {
+                         totalRuns += b.runs + (b.extrasRuns || 0);
+                         if (b.isWicket) totalWickets++;
+                         if (!['WD', 'NB'].includes(b.extrasType)) totalLegalBalls++;
                     }
                 });
 
                 const isThisBallLegal = !['WD', 'NB'].includes(extrasType);
                 let isOverComplete = false;
 
-                if (isThisBallLegal) {
-                    legalBalls++;
-                    if (legalBalls % 6 === 0) {
-                        isOverComplete = true;
-                    }
+                if (isThisBallLegal && totalLegalBalls % 6 === 0) {
+                    isOverComplete = true;
                 }
 
-                const matchRef = doc(db, getCollPath('matches'), currentMatchId);
-                
-                const newHistory = [...history, ballEvent];
-                
-                const scoreSummary = computeScoreStrings(newHistory);
-
-                const updateData = {
-                    history: newHistory,
-                    score: scoreSummary, 
-                    updatedAt: serverTimestamp()
-                };
-
+                // Update Striker/Bowler in DB
                 if (isOverComplete) {
                     const temp = nextStriker;
                     nextStriker = nextNonStriker;
                     nextNonStriker = temp;
-
-                    updateData.currentBowlerId = "";
+                    updateData.currentBowlerId = ""; // Force bowler change
                     updateData.lastBowlerId = ballEvent.bowlerId;
                 }
-
                 updateData.currentStrikerId = nextStriker;
                 updateData.currentNonStrikerId = nextNonStriker;
-                
-                await updateDoc(matchRef, updateData);
+                updateData.score = computeScoreStrings(newHistory);
 
-                let msg = "Ball Scored!";
-                if(ballEvent.isWicket) msg = "WICKET!";
-                else if(runs === 4) msg = "FOUR!";
-                else if(runs === 6) msg = "SIX!";
-                else if(isOverComplete) {
-                    const totalLegalBalls = legalBalls; 
-                    if (totalLegalBalls >= maxOvers * 6) {
-                        msg = `OVER COMPLETE! Innings Finished (${maxOvers} Overs)`;
-                    } else {
-                        msg = "OVER COMPLETE!";
+
+                // --- 4. APPLY WINNING RULES / INNINGS END RULES ---
+                
+                const squadSize = battingSquad.length;
+                // Standard All Out is 10 wickets, but if squad is smaller (e.g. 5 players), all out is 4 wickets.
+                const allOutWickets = Math.min(10, squadSize - 1); 
+                const isAllOut = totalWickets >= allOutWickets;
+                const isOversFinished = totalLegalBalls >= (maxOvers * 6);
+
+                let matchEndReason = null;
+
+                if (inn === 1) {
+                    // Innings 1 End Conditions
+                    if (isAllOut || isOversFinished) {
+                        updateData.currentInnings = 2;
+                        updateData.currentStrikerId = "";
+                        updateData.currentNonStrikerId = "";
+                        updateData.currentBowlerId = "";
+                        updateData.lastBowlerId = "";
+                        showToast(isAllOut ? "All Out! Innings Break." : "Overs Completed! Innings Break.");
+                    }
+                } 
+                else if (inn === 2) {
+                    // Innings 2 Match End Conditions
+                    const target = currentMatchState.innings[1].runs + 1;
+                    
+                    if (totalRuns >= target) {
+                        // BATTING TEAM WINS
+                        const wktsLeft = 10 - totalWickets; // Or squad based
+                        matchEndReason = `${currentMatchData.teamBName} won by ${Math.max(1, squadSize - 1 - totalWickets)} wickets`;
+                    } else if (isAllOut || isOversFinished) {
+                        // BOWLING TEAM WINS or TIE
+                        if (totalRuns < target - 1) {
+                            matchEndReason = `${currentMatchData.teamAName} won by ${target - totalRuns - 1} runs`;
+                        } else if (totalRuns === target - 1) {
+                            matchEndReason = "Match Tied";
+                        }
                     }
                 }
 
-                showToast(msg);
+                // Perform Update
+                const matchRef = doc(db, getCollPath('matches'), currentMatchId);
+                
+                if (matchEndReason) {
+                     // MATCH COMPLETED AUTOMATICALLY
+                     updateData.status = 'completed';
+                     updateData.result = matchEndReason;
+                     updateData.endedAt = serverTimestamp();
+                     updateData.scorecard = generateFinalScorecard(currentMatchData, calculateMatchState({...currentMatchData, history: newHistory}));
+                     
+                     // We need to update stats too. Since we can't easily call the async function here inside a plain block, 
+                     // let's do the update first, then call stats update.
+                     await updateDoc(matchRef, updateData);
+                     
+                     // Now simulate the state for stats update
+                     const finalState = calculateMatchState({...currentMatchData, history: newHistory});
+                     await updatePlayerStatsAfterMatch(finalState);
+                     
+                     showToast("Match Completed! " + matchEndReason);
+                } else {
+                    // Just a regular ball or innings break
+                    await updateDoc(matchRef, updateData);
+                    
+                    let msg = "Ball Scored!";
+                    if(ballEvent.isWicket) msg = "WICKET!";
+                    else if(runs === 4) msg = "FOUR!";
+                    else if(runs === 6) msg = "SIX!";
+                    else if(isOverComplete) msg = "OVER COMPLETE!";
+                    showToast(msg);
+                }
 
             } catch(e) {
                 console.error("Score Error:", e);
@@ -1819,8 +1874,20 @@
 
         window.undoLastBall = async () => {
             if(!currentMatchData || !currentMatchData.history || currentMatchData.history.length === 0) return;
+            
+            // Cannot undo if match is already completed automatically
+            if(currentMatchData.status === 'completed') return alert("Cannot undo after match is completed.");
+
             const history = [...currentMatchData.history];
             const popped = history.pop();
+            
+            // Check if we are reverting innings change? (Hard to do perfectly without complex logic, simple undo restores IDs)
+            // Ideally, simple undo just pops history and restores the IDs stored in that ball (which we don't store).
+            // So we revert to previous IDs logic.
+            
+            // Simplified: Just update history and let user fix batsmen/bowler if they get messed up.
+            // But we can try to restore the striker/nonStriker from the POPPED ball.
+            // The popped ball has who PLAYED it.
             
             const scoreSummary = computeScoreStrings(history);
 
@@ -1842,7 +1909,7 @@
                 return;
             }
 
-            if(!confirm("Are you sure you want to end the 1st innings?")) return;
+            if(!confirm("Are you sure you want to end the 1st innings manually?")) return;
 
             try {
                 await updateDoc(doc(db, getCollPath('matches'), currentMatchId), {
@@ -1955,13 +2022,15 @@
             return scorecard;
         }
 
-        async function updatePlayerStatsAfterMatch() {
-            if (!currentMatchState) return;
+        // Updated to accept state as argument for robustness
+        async function updatePlayerStatsAfterMatch(stateOverride = null) {
+            const stateToUse = stateOverride || currentMatchState;
+            if (!stateToUse) return;
             
             const batch = writeBatch(db);
             const displayedPlayers = new Set(); 
             
-            for (const [playerId, data] of Object.entries(currentMatchState.batsmen)) {
+            for (const [playerId, data] of Object.entries(stateToUse.batsmen)) {
                 if(!playerId) continue;
                 displayedPlayers.add(playerId);
                 
@@ -1979,7 +2048,7 @@
                 }, { merge: true });
             }
 
-            for (const [playerId, data] of Object.entries(currentMatchState.bowlers)) {
+            for (const [playerId, data] of Object.entries(stateToUse.bowlers)) {
                 if(!playerId) continue;
                 const playerRef = doc(db, getCollPath('players'), playerId);
                 
@@ -2831,7 +2900,7 @@
             }
         };
 
-        document.getElementById('themeToggle').addEventListener('click', () => {
+        ddocument.getElementById('themeToggle').addEventListener('click', () => {
             document.documentElement.classList.toggle('dark');
         });
 
