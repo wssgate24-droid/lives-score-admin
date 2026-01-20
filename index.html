@@ -85,6 +85,24 @@
             color: white;
             transition: opacity 0.5s ease-out;
         }
+
+        /* Checkbox styling for player selection */
+        .player-checkbox:checked + div {
+            background-color: #ecfdf5; /* green-50 */
+            border-color: #059669; /* green-600 */
+        }
+        .dark .player-checkbox:checked + div {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-color: #059669;
+        }
+        .player-checkbox:disabled + div {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #f3f4f6;
+        }
+        .dark .player-checkbox:disabled + div {
+            background-color: #374151;
+        }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen transition-colors duration-200">
@@ -398,10 +416,16 @@
                          <h3 class="font-bold text-lg mb-4 flex items-center"><i class="fas fa-plus-circle mr-2 text-blue-500"></i> Create New Team</h3>
                          <input type="text" id="newTeamName" placeholder="Team Name" class="w-full p-2 border rounded mb-3 dark:bg-gray-700 dark:border-gray-600">
                          
-                         <p class="text-sm font-bold mb-2">Select Players</p>
+                         <div class="flex justify-between items-center mb-2">
+                             <p class="text-sm font-bold">Select Players</p>
+                             <label class="text-xs flex items-center cursor-pointer">
+                                 <input type="checkbox" id="createTeamShowAvailable" onchange="filterSelectionList('teamCreationPlayerList', document.querySelector('#teamCreationSearch').value)" class="mr-1"> 
+                                 Show available only
+                             </label>
+                         </div>
                          
                          <!-- Search for selection -->
-                         <input type="text" onkeyup="filterSelectionList('teamCreationPlayerList', this.value)" placeholder="Search player..." class="w-full p-2 text-xs border rounded mb-2 dark:bg-gray-700 dark:border-gray-600">
+                         <input type="text" id="teamCreationSearch" onkeyup="filterSelectionList('teamCreationPlayerList', this.value)" placeholder="Search player..." class="w-full p-2 text-xs border rounded mb-2 dark:bg-gray-700 dark:border-gray-600">
                          
                          <!-- Checkbox List -->
                          <div id="teamCreationPlayerList" class="h-60 overflow-y-auto border rounded p-2 mb-4 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 space-y-1">
@@ -492,7 +516,15 @@
                         
                         <div class="border-t dark:border-gray-600 pt-3">
                             <label class="block text-xs font-bold mb-1 text-green-600">Add More Players from Database</label>
-                            <input type="text" onkeyup="filterSelectionList('modalPlayerSelectionList', this.value)" placeholder="Search player to add..." class="w-full p-2 text-xs border rounded mb-2 dark:bg-gray-700 dark:border-gray-600">
+                            
+                            <div class="flex justify-between items-center mb-2">
+                                <input type="text" id="editTeamSearch" onkeyup="filterSelectionList('modalPlayerSelectionList', this.value)" placeholder="Search player to add..." class="w-2/3 p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <label class="text-xs flex items-center cursor-pointer ml-2">
+                                     <input type="checkbox" id="editTeamShowAvailable" onchange="filterSelectionList('modalPlayerSelectionList', document.querySelector('#editTeamSearch').value)" class="mr-1"> 
+                                     Available Only
+                                 </label>
+                            </div>
+
                             <div id="modalPlayerSelectionList" class="h-32 overflow-y-auto border rounded p-2 dark:border-gray-600 bg-white dark:bg-gray-800">
                                 <!-- Checkboxes will load here -->
                             </div>
@@ -742,6 +774,7 @@
         let currentUser = null;
         let currentMatchUnsubscribe = null;
         let matchesListUnsubscribe = null; 
+        let teamsListenerUnsubscribe = null; // NEW: To handle realtime teams list
         let currentMatchData = null; 
         let currentMatchState = null; 
         let isLoginMode = true;
@@ -916,6 +949,11 @@
                 }
             } else {
                 currentUser = null;
+                // Cleanup Realtime Listeners on Logout
+                if (teamsListenerUnsubscribe) { teamsListenerUnsubscribe(); teamsListenerUnsubscribe = null; }
+                if (matchesListUnsubscribe) { matchesListUnsubscribe(); matchesListUnsubscribe = null; }
+                if (currentMatchUnsubscribe) { currentMatchUnsubscribe(); currentMatchUnsubscribe = null; }
+
                 appContainer.classList.add('hidden');
                 userProfile.classList.add('hidden');
                 authContainer.classList.remove('hidden');
@@ -1282,15 +1320,23 @@
 
                     if (currentMatchData.status === 'live') {
                         
-                        if (currentMatchData.currentInnings === 2 && !currentMatchData.currentStrikerId) {
-                             openSecondInningsModal();
-                             return;
+                        // Calculate balls bowled in innings 2 to distinguish between "Start of Innings" and "Wicket fall"
+                        const ballsInInn2 = currentMatchData.history ? currentMatchData.history.filter(b => b.innings === 2).length : 0;
+
+                        // Case: Start of 2nd Innings (Innings 2 set, no balls yet, batsmen not set)
+                        if (currentMatchData.currentInnings === 2 && ballsInInn2 === 0) {
+                             if(!currentMatchData.currentStrikerId || !currentMatchData.currentNonStrikerId) {
+                                openSecondInningsModal();
+                                return; // Stop here, don't check for wicket modal
+                             }
                         } else {
                              document.getElementById('secondInningsModal').classList.add('opacity-0', 'pointer-events-none');
                         }
 
-                        if (currentMatchData.currentStrikerId && (!currentMatchData.currentStrikerId || !currentMatchData.currentNonStrikerId)) {
-                            if(currentMatchData.history.length > 0) {
+                        // Case: Batsman Out (One or both slots empty, and match is live)
+                        if (!currentMatchData.currentStrikerId || !currentMatchData.currentNonStrikerId) {
+                            // Ensure we have some history (match started) to avoid triggering on fresh setup glitch
+                            if(currentMatchData.history && currentMatchData.history.length > 0) {
                                 openNewBatsmanModal();
                             }
                         } else {
@@ -2325,6 +2371,9 @@
                                 <div class="text-[10px] text-gray-500">${p.role || 'Player'}</div>
                             </div>
                         </div>
+                        <button onclick="deleteGlobalPlayer('${doc.id}')" class="text-red-500 hover:text-red-700 p-2 bg-white dark:bg-gray-800 rounded shadow-sm hover:bg-red-50 transition" title="Delete Player & Stats">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
                 `;
             });
@@ -2338,36 +2387,114 @@
             });
         };
 
+        // NEW HELPER: Get map of { playerId: teamName }
+        async function getAssignedPlayersMap() {
+            const teamsSnap = await getDocs(collection(db, getCollPath('teams')));
+            const used = {}; 
+            teamsSnap.forEach(doc => {
+                const team = doc.data();
+                if(team.squad) {
+                    team.squad.forEach(p => used[p.id] = team.name);
+                }
+            });
+            return used;
+        }
+
+        window.deleteGlobalPlayer = async (playerId) => {
+            if(!confirm("Warning: Do you really want to delete this player and their stats? This cannot be undone.")) return;
+
+            try {
+                await deleteDoc(doc(db, getCollPath('players'), playerId));
+                showToast("Player deleted from database.");
+                loadGlobalPlayerDb(); 
+                loadPlayersForSelection(); 
+                loadAllPlayers(); 
+
+            } catch(e) {
+                console.error(e);
+                alert("Error deleting player: " + e.message);
+            }
+        };
+
         window.loadPlayersForSelection = async () => {
+            const createList = document.getElementById('teamCreationPlayerList');
+            const modalList = document.getElementById('modalPlayerSelectionList');
+            
+            // Show loading
+            if(createList) createList.innerHTML = '<p class="text-xs text-center p-2">Checking availablity...</p>';
+            if(modalList) modalList.innerHTML = '<p class="text-xs text-center p-2">Checking availablity...</p>';
+
+            // 1. Get List of "Taken" Players
+            const usedPlayersMap = await getAssignedPlayersMap();
+
+            // 2. Get All Players
             const q = query(collection(db, getCollPath('players')), orderBy('name'));
             const snap = await getDocs(q);
             
             let html = '';
+            
             snap.forEach(doc => {
                 const p = doc.data();
+                const isTaken = usedPlayersMap.hasOwnProperty(doc.id);
+                const takenBy = usedPlayersMap[doc.id];
+                
+                // Logic for disabling:
+                // - If regular creation: disable if taken.
+                // - If editing: handled separately in openTeamEditor, but we set base attribute here.
+                
+                const disabledAttr = isTaken ? 'disabled' : '';
+                const badge = isTaken 
+                    ? `<span class="ml-auto text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded border border-red-200">Taken by ${takenBy}</span>` 
+                    : `<span class="ml-auto text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded border border-green-200">Available</span>`;
+                
+                // Extra class for filtering
+                const takenClass = isTaken ? 'status-taken' : 'status-available';
+
                 html += `
-                    <label class="flex items-center p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer selection-item">
-                        <input type="checkbox" value="${doc.id}" data-name="${p.name}" class="player-select-checkbox form-checkbox h-4 w-4 text-green-600 rounded border-gray-300">
-                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300 item-name">${p.name}</span>
+                    <label class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer selection-item ${takenClass} border-b dark:border-gray-700 last:border-0 relative">
+                        <input type="checkbox" value="${doc.id}" data-name="${p.name}" ${disabledAttr} class="player-checkbox player-select-checkbox form-checkbox h-4 w-4 text-green-600 rounded border-gray-300 absolute opacity-0 w-0 h-0">
+                        <div class="w-5 h-5 border-2 rounded mr-3 flex items-center justify-center transition-colors border-gray-300 dark:border-gray-500">
+                             <i class="fas fa-check text-white text-xs pointer-events-none"></i>
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 item-name">${p.name}</span>
+                            <div class="text-[10px] text-gray-400">${p.role || 'Player'}</div>
+                        </div>
+                        ${badge}
                     </label>
                 `;
             });
 
-            const createList = document.getElementById('teamCreationPlayerList');
-            if(createList) createList.innerHTML = html || '<p class="text-xs text-center p-2">No players found</p>';
+            const content = html || '<p class="text-xs text-center p-2">No players found</p>';
 
-            const modalList = document.getElementById('modalPlayerSelectionList');
-            if(modalList) modalList.innerHTML = html || '<p class="text-xs text-center p-2">No players found</p>';
+            if(createList) createList.innerHTML = content;
+            if(modalList) modalList.innerHTML = content;
         };
 
         window.filterSelectionList = (containerId, text) => {
-            const term = text.toLowerCase();
+            const term = text ? text.toLowerCase() : '';
             const container = document.getElementById(containerId);
             if(!container) return;
             
+            // Determine if "Show Available Only" is checked
+            let showAvailableOnly = false;
+            if(containerId === 'teamCreationPlayerList') {
+                showAvailableOnly = document.getElementById('createTeamShowAvailable').checked;
+            } else if (containerId === 'modalPlayerSelectionList') {
+                showAvailableOnly = document.getElementById('editTeamShowAvailable').checked;
+            }
+
             container.querySelectorAll('.selection-item').forEach(item => {
                 const name = item.querySelector('.item-name').innerText.toLowerCase();
-                item.style.display = name.includes(term) ? 'flex' : 'none';
+                const isTaken = item.classList.contains('status-taken');
+                
+                // Logic: Match Name AND (ShowAll OR (ShowAvailableOnly AND IsAvailable))
+                // Note: !isTaken means available.
+                
+                const matchesName = name.includes(term);
+                const matchesFilter = !showAvailableOnly || (showAvailableOnly && !isTaken);
+
+                item.style.display = (matchesName && matchesFilter) ? 'flex' : 'none';
             });
         };
 
@@ -2379,6 +2506,7 @@
             const name = document.getElementById('newTeamName').value.trim();
             if(!name) return alert("Team Name required");
             
+            // Check logic again
             const selectedCheckboxes = document.querySelectorAll('#teamCreationPlayerList .player-select-checkbox:checked');
             if(selectedCheckboxes.length === 0) return alert("Please select at least one player");
 
@@ -2393,28 +2521,61 @@
                 });
                 
                 document.getElementById('newTeamName').value = '';
-                document.querySelectorAll('#teamCreationPlayerList .player-select-checkbox').forEach(cb => cb.checked = false);
+                document.querySelectorAll('#teamCreationPlayerList .player-select-checkbox').forEach(cb => {
+                    cb.checked = false;
+                    // Reset UI logic
+                    const div = cb.nextElementSibling;
+                    // div styling is handled by CSS based on checked state
+                });
                 
                 showToast("New team created successfully!");
                 loadManageTeams(); 
+                // Refresh list to mark these players as taken now
+                loadPlayersForSelection();
             } catch(e) {
                 alert("Error: " + e.message);
             }
         };
         
-        async function loadTeamsForMatch() {
+        // REPLACED: Converted to Realtime Listener
+        function loadTeamsForMatch() {
+            if (teamsListenerUnsubscribe) return; // Prevent multiple listeners
+
             const s1 = document.getElementById('matchTeamA');
             const s2 = document.getElementById('matchTeamB');
-            const snap = await getDocs(collection(db, getCollPath('teams')));
-            let opts = '<option value="">Select Team</option>';
-            window.allTeams = {}; 
-            snap.forEach(d => {
-                const t = d.data();
-                window.allTeams[d.id] = t;
-                opts += `<option value="${d.id}">${t.name}</option>`;
+            
+            // Initial loading state
+            if (s1.options.length <= 1) {
+                 s1.innerHTML = '<option>Loading...</option>';
+                 s2.innerHTML = '<option>Loading...</option>';
+            }
+
+            const q = query(collection(db, getCollPath('teams')), orderBy('name'));
+            
+            teamsListenerUnsubscribe = onSnapshot(q, (snap) => {
+                const val1 = s1.value; // Preserve selection if possible
+                const val2 = s2.value;
+
+                let opts = '<option value="">Select Team</option>';
+                window.allTeams = {}; 
+                
+                snap.forEach(d => {
+                    const t = d.data();
+                    window.allTeams[d.id] = t;
+                    opts += `<option value="${d.id}">${t.name}</option>`;
+                });
+                
+                s1.innerHTML = opts;
+                s2.innerHTML = opts;
+
+                // Restore selection if the team still exists
+                if (window.allTeams[val1]) s1.value = val1;
+                if (window.allTeams[val2]) s2.value = val2;
+
+            }, (error) => {
+                console.error("Teams listener error:", error);
+                s1.innerHTML = '<option>Error loading teams</option>';
             });
-            s1.innerHTML = opts;
-            s2.innerHTML = opts;
         }
 
         window.loadManageTeams = async () => {
@@ -2453,6 +2614,7 @@
             await deleteDoc(doc(db, getCollPath('teams'), teamId));
             showToast("Team deleted");
             loadManageTeams();
+            loadPlayersForSelection(); // Refresh to free up players
         };
 
         let currentEditingTeamId = null;
@@ -2468,17 +2630,30 @@
                 currentEditingSquad = data.squad || [];
                 renderEditorSquad();
                 
-                // Refresh selection list
+                // Refresh selection list first to get latest "Taken" status
                 await loadPlayersForSelection();
                 
-                // Disable existing players
+                // Now, loop through checkboxes.
+                // Special Rule for Edit: If a player is "Taken" by THIS team, enable them (so we can add them back if we want, though logically they are already in squad list).
+                // Actually, the requirement is "Add More Players". The players already in the squad are shown in the top list.
+                // So the bottom list should show everyone ELSE.
+                // If a player is in Team B, they should remain disabled.
+                // If a player is in Team A (current team), they are technically "Taken", but since they are already in the squad list above, we can just disable them or hide them.
+                
                 const existingIds = currentEditingSquad.map(p => p.id);
+                
                 document.querySelectorAll('#modalPlayerSelectionList .player-select-checkbox').forEach(cb => {
-                    cb.checked = false;
+                    const parent = cb.closest('label');
+                    const badge = parent.querySelector('span.bg-red-100'); // The "Taken by..." badge
+                    
+                    // If player is already in THIS team's squad list
                     if(existingIds.includes(cb.value)) {
                         cb.disabled = true;
-                        cb.parentElement.classList.add('opacity-50');
-                    }
+                        cb.checked = true; // Visually show checked
+                        parent.classList.add('opacity-50');
+                        if(badge) badge.innerText = "Already in squad";
+                    } 
+                    // Note: Players in OTHER teams are already disabled by loadPlayersForSelection logic
                 });
 
                 const modal = document.getElementById('editTeamModal');
@@ -2497,7 +2672,7 @@
             const list = document.getElementById('editTeamPlayersList');
             list.innerHTML = '';
             if(currentEditingSquad.length === 0) {
-                list.innerHTML = '<p class="text-xs text-gray-500 p-2">No players</p>';
+                list.innerHTML = '<p class="text-xs text-gray-500 p-2">No players in squad</p>';
                 return;
             }
             currentEditingSquad.forEach((p, index) => {
@@ -2514,35 +2689,43 @@
         }
 
         window.removePlayerFromTeam = (index) => {
+            // Logic: Remove from array. When saved, this player becomes "Free" in global pool.
             currentEditingSquad.splice(index, 1);
             renderEditorSquad();
+            
+            // Note: We don't update the bottom checklist immediately because simpler to just save and refresh.
+            // But user can click "Save Team" to finalize removal.
         };
 
         window.addSelectedPlayersToEdit = () => {
-            const selectedCheckboxes = document.querySelectorAll('#modalPlayerSelectionList .player-select-checkbox:checked');
+            const selectedCheckboxes = document.querySelectorAll('#modalPlayerSelectionList .player-select-checkbox:checked:not(:disabled)');
+            
             if(selectedCheckboxes.length === 0) return;
 
             let addedCount = 0;
             selectedCheckboxes.forEach(cb => {
+                // Double check uniqueness
                 if(!currentEditingSquad.some(p => p.id === cb.value)) {
                     currentEditingSquad.push({
                         id: cb.value,
                         name: cb.getAttribute('data-name')
                     });
                     addedCount++;
+                    
+                    // Visually update the checkbox immediately
+                    cb.disabled = true;
+                    cb.closest('label').classList.add('opacity-50');
+                    const badge = cb.closest('label').querySelector('.bg-green-50'); // Available badge
+                    if(badge) {
+                        badge.classList.replace('bg-green-50', 'bg-blue-50');
+                        badge.classList.replace('text-green-600', 'text-blue-600');
+                        badge.innerText = "Added";
+                    }
                 }
-                cb.checked = false; 
             });
 
             if(addedCount > 0) {
                 renderEditorSquad();
-                const existingIds = currentEditingSquad.map(p => p.id);
-                document.querySelectorAll('#modalPlayerSelectionList .player-select-checkbox').forEach(cb => {
-                    if(existingIds.includes(cb.value)) {
-                        cb.disabled = true;
-                        cb.parentElement.classList.add('opacity-50');
-                    }
-                });
             }
         };
 
@@ -2556,6 +2739,8 @@
             showToast("Team updated");
             closeModal('editTeamModal');
             loadManageTeams();
+            // Refresh main selection list to reflect changes (freed players or taken players)
+            loadPlayersForSelection();
         };
 
         window.createNewMatch = async () => {
