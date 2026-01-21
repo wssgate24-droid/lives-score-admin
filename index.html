@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CricScore Pro - Admin App</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,9 +33,9 @@
     </script>
 
     <style>
-        body { font-family: 'Roboto', sans-serif; }
+        body { font-family: 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
         .cricket-bg {
-            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1531415074968-bc2ce8a10022?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1531415074968-bc2ce8a10022?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -51,18 +51,18 @@
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
         .score-ball {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
         
         .modal { transition: opacity 0.25s ease; }
-        body.modal-active { overflow-x: hidden; overflow-y: visible !important; }
+        body.modal-active { overflow: hidden; }
 
         /* Dynamic Input Animation */
         .input-group { transition: all 0.3s ease-in-out; overflow: hidden; }
@@ -86,13 +86,13 @@
             transition: opacity 0.5s ease-out;
         }
 
-        /* Checkbox styling for player selection */
+        /* Checkbox styling */
         .player-checkbox:checked + div {
             background-color: #ecfdf5; /* green-50 */
             border-color: #059669; /* green-600 */
         }
         .dark .player-checkbox:checked + div {
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: rgba(5, 150, 105, 0.2);
             border-color: #059669;
         }
         .player-checkbox:disabled + div {
@@ -103,9 +103,12 @@
         .dark .player-checkbox:disabled + div {
             background-color: #374151;
         }
+        
+        /* Mobile Touch Improvements */
+        button { touch-action: manipulation; }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen transition-colors duration-200">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen transition-colors duration-200 pb-16 sm:pb-0">
 
     <div id="globalLoader">
         <i class="fas fa-baseball-bat-ball fa-spin text-5xl text-green-500 mb-4"></i>
@@ -113,44 +116,41 @@
         <p class="text-gray-400 text-sm mt-2">Connecting...</p>
     </div>
 
-    <nav class="bg-cricket-dark text-white shadow-lg sticky top-0 z-50">
+    <nav class="bg-cricket-dark text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
+            <div class="flex justify-between h-14 sm:h-16">
                 <div class="flex items-center">
-                    <i class="fas fa-baseball-bat-ball text-2xl mr-2 text-green-400"></i>
-                    <span class="font-bold text-xl tracking-tight">CricScore Admin</span>
+                    <i class="fas fa-baseball-bat-ball text-xl sm:text-2xl mr-2 text-green-400"></i>
+                    <span class="font-bold text-lg sm:text-xl tracking-tight truncate">CricScore Admin</span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <button id="themeToggle" class="p-2 rounded hover:bg-white/10"><i class="fas fa-moon"></i></button>
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <button id="themeToggle" class="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"><i class="fas fa-moon"></i></button>
                     
-                    <div id="userProfile" class="hidden flex items-center space-x-3 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
-                        <div class="flex items-center space-x-2">
-                            <div id="userAvatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-md border border-white/20">
-                                U
-                            </div>
-                            <div class="hidden sm:flex flex-col items-start leading-none mr-1">
-                                <span id="userNameDisplay" class="text-sm font-bold text-white">User Name</span>
-                                <span id="userRoleBadge" class="text-[9px] bg-green-500/80 text-white px-1.5 py-0.5 rounded-sm uppercase tracking-wider mt-0.5 backdrop-blur-sm">ADMIN</span>
-                            </div>
+                    <div id="userProfile" class="hidden flex items-center bg-white/10 pr-3 pl-1 py-1 rounded-full border border-white/10">
+                        <div id="userAvatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-md border border-white/20 mr-2">
+                            U
                         </div>
-                        <button onclick="handleLogout()" class="text-gray-300 hover:text-white transition" title="Logout">
+                        <div class="hidden sm:flex flex-col items-start leading-none mr-2">
+                            <span id="userNameDisplay" class="text-xs sm:text-sm font-bold text-white max-w-[100px] truncate">User</span>
+                            <span id="userRoleBadge" class="text-[8px] bg-green-500/80 text-white px-1 py-0.5 rounded-sm uppercase tracking-wider mt-0.5 backdrop-blur-sm">ADMIN</span>
+                        </div>
+                        <button onclick="handleLogout()" class="text-gray-300 hover:text-white transition ml-1" title="Logout">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>
     </nav>
 
     <div id="authContainer" class="hidden min-h-[calc(100vh-64px)] cricket-bg flex items-center justify-center p-4">
-        <div class="glass-panel p-8 rounded-xl shadow-2xl w-full max-w-md transition-all duration-300">
+        <div class="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md transition-all duration-300 mx-auto">
             <div class="text-center mb-6">
                 <div class="inline-block p-3 rounded-full bg-green-100 dark:bg-green-900/30 text-cricket-green mb-3">
                     <i class="fas fa-user-shield text-3xl"></i>
                 </div>
-                <h2 id="authTitle" class="text-3xl font-bold text-cricket-dark dark:text-green-400">Admin Login</h2>
-                <p id="authSubtitle" class="text-gray-600 dark:text-gray-300 mt-2">Enter to manage data</p>
+                <h2 id="authTitle" class="text-2xl sm:text-3xl font-bold text-cricket-dark dark:text-green-400">Admin Login</h2>
+                <p id="authSubtitle" class="text-gray-600 dark:text-gray-300 mt-2 text-sm">Enter to manage data</p>
             </div>
             
             <div class="space-y-4">
@@ -169,12 +169,12 @@
                     <input type="password" id="passwordInput" placeholder="••••••••" class="w-full p-3 rounded border dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">
                 </div>
                 
-                <button onclick="handleAuth()" id="authBtn" class="w-full bg-cricket-green hover:bg-cricket-dark text-white font-bold py-3 rounded transition shadow-lg transform hover:scale-[1.02] flex justify-center items-center">
+                <button onclick="handleAuth()" id="authBtn" class="w-full bg-cricket-green hover:bg-cricket-dark text-white font-bold py-3 rounded transition shadow-lg transform active:scale-95 flex justify-center items-center">
                     <span>Login</span>
                     <i id="authSpinner" class="fas fa-circle-notch fa-spin ml-2 hidden"></i>
                 </button>
                 
-                <div class="flex justify-between text-sm mt-4 pt-2 border-t dark:border-gray-700">
+                <div class="flex justify-between text-xs sm:text-sm mt-4 pt-2 border-t dark:border-gray-700">
                     <button onclick="handleForgotPassword()" class="text-blue-600 hover:text-blue-800 dark:text-blue-400">Forgot Password?</button>
                     <button onclick="toggleAuthMode()" id="toggleAuthBtn" class="text-green-600 hover:text-green-800 dark:text-green-400 font-bold">Create New Account</button>
                 </div>
@@ -185,26 +185,26 @@
         </div>
     </div>
 
-    <div id="appContainer" class="hidden max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-6">
+    <div id="appContainer" class="hidden max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-6">
         
-        <div class="flex overflow-x-auto space-x-2 mb-6 hide-scroll pb-2">
-            <button onclick="switchView('live')" class="nav-btn bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow hover:bg-green-50 dark:hover:bg-gray-700 whitespace-nowrap active-nav-btn" data-target="live">
-                <i class="fas fa-broadcast-tower text-red-500 mr-2"></i><span>Live Matches</span>
+        <!-- Mobile Horizontal Scroll Nav -->
+        <div class="flex overflow-x-auto space-x-2 mb-4 hide-scroll pb-1 -mx-2 px-2 sm:mx-0 sm:px-0 sticky top-16 z-30 bg-gray-100/90 dark:bg-gray-900/90 backdrop-blur-sm py-2">
+            <button onclick="switchView('live')" class="nav-btn flex-shrink-0 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow hover:bg-green-50 dark:hover:bg-gray-700 whitespace-nowrap active-nav-btn text-sm font-medium transition-transform active:scale-95" data-target="live">
+                <i class="fas fa-broadcast-tower text-red-500 mr-2"></i><span>Live</span>
             </button>
-            <button onclick="switchView('tournaments')" class="nav-btn bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow hover:bg-green-50 dark:hover:bg-gray-700 whitespace-nowrap" data-target="tournaments">
+            <button onclick="switchView('tournaments')" class="nav-btn flex-shrink-0 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow hover:bg-green-50 dark:hover:bg-gray-700 whitespace-nowrap text-sm font-medium transition-transform active:scale-95" data-target="tournaments">
                 <i class="fas fa-trophy text-yellow-500 mr-2"></i><span>Tournaments</span>
             </button>
-            <button onclick="switchView('players')" class="nav-btn bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow hover:bg-green-50 dark:hover:bg-gray-700 whitespace-nowrap" data-target="players">
-                <i class="fas fa-users text-purple-500 mr-2"></i><span>Player Stats</span>
+            <button onclick="switchView('players')" class="nav-btn flex-shrink-0 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow hover:bg-green-50 dark:hover:bg-gray-700 whitespace-nowrap text-sm font-medium transition-transform active:scale-95" data-target="players">
+                <i class="fas fa-users text-purple-500 mr-2"></i><span>Stats</span>
             </button>
-            <button id="adminTabBtn" onclick="switchView('admin')" class="nav-btn bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow hover:bg-green-50 dark:hover:bg-gray-700 whitespace-nowrap" data-target="admin">
-                <i class="fas fa-user-shield text-blue-500 mr-2"></i><span>Admin Panel</span>
+            <button id="adminTabBtn" onclick="switchView('admin')" class="nav-btn flex-shrink-0 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow hover:bg-green-50 dark:hover:bg-gray-700 whitespace-nowrap text-sm font-medium transition-transform active:scale-95" data-target="admin">
+                <i class="fas fa-user-shield text-blue-500 mr-2"></i><span>Admin</span>
             </button>
         </div>
 
         <div id="liveView" class="view-section">
-            <h2 class="text-2xl font-bold mb-4 border-l-4 border-green-500 pl-3">Match List</h2>
-            <div id="matchesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div id="matchesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <div class="text-center py-10 text-gray-500 col-span-full">
                     <i class="fas fa-spinner fa-spin text-3xl"></i>
                     <p class="mt-2">Loading matches...</p>
@@ -213,58 +213,137 @@
         </div>
 
         <div id="playersView" class="view-section hidden">
-            <h2 class="text-2xl font-bold mb-4 border-l-4 border-purple-500 pl-3">Player Statistics</h2>
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 border-l-4 border-purple-500 pl-3">Player Statistics</h2>
             <!-- Player Search/Filter -->
             <div class="mb-4">
                 <input type="text" id="playerSearch" onkeyup="filterPlayers()" placeholder="Search player name..." class="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700 shadow-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
             </div>
-            <div id="playersListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div id="playersListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 <!-- Players will be loaded here -->
             </div>
         </div>
 
-        <div id="matchDetailView" class="view-section hidden">
-            <button onclick="switchView('live')" class="mb-4 text-sm text-gray-500 hover:text-green-600"><i class="fas fa-arrow-left"></i> Go Back</button>
+        <div id="matchDetailView" class="view-section hidden pb-10">
+            <button onclick="switchView('live')" class="mb-3 text-sm text-gray-500 hover:text-green-600 flex items-center p-1"><i class="fas fa-arrow-left mr-1"></i> Go Back</button>
             
-            <div class="glass-panel rounded-xl shadow-lg overflow-hidden mb-6 border-t-4 border-cricket-green">
-                <div class="p-4 sm:p-6">
+            <div class="glass-panel rounded-xl shadow-lg overflow-hidden mb-4 border-t-4 border-cricket-green">
+                <div class="p-4">
                     <div class="flex justify-between items-start mb-2">
-                        <span id="matchStatusBadge" class="bg-red-500 text-white text-xs px-2 py-1 rounded-full uppercase tracking-wide font-bold animate-pulse">LIVE</span>
+                        <span id="matchStatusBadge" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wide font-bold animate-pulse">LIVE</span>
                         <div class="text-right">
-                             <span id="matchTournamentName" class="text-sm text-gray-500 font-medium block">Tournament Name</span>
-                             <span id="matchHostName" class="text-xs text-gray-400 block mt-0.5"></span>
+                             <span id="matchTournamentName" class="text-xs sm:text-sm text-gray-500 font-medium block">Tournament</span>
+                             <span id="matchHostName" class="text-[10px] text-gray-400 block mt-0.5"></span>
                         </div>
                     </div>
                     
-                    <div class="flex justify-between items-center mt-4">
-                        <div class="text-center w-1/3">
-                            <h3 id="teamAName" class="font-bold text-lg sm:text-2xl truncate">Team A</h3>
-                            <p id="teamAScore" class="text-xl sm:text-3xl font-mono font-bold text-gray-700 dark:text-gray-200">-/-</p>
-                            <p id="teamAOvers" class="text-sm text-gray-500">0.0 ov</p>
+                    <div class="flex justify-between items-center mt-2">
+                        <div class="text-center w-5/12">
+                            <h3 id="teamAName" class="font-bold text-base sm:text-xl truncate leading-tight">Team A</h3>
+                            <p id="teamAScore" class="text-lg sm:text-3xl font-mono font-bold text-gray-700 dark:text-gray-200 mt-1">-/-</p>
+                            <p id="teamAOvers" class="text-xs text-gray-500">0.0 ov</p>
                         </div>
-                        <div class="text-center w-1/3">
-                            <div class="text-xs text-gray-400 uppercase tracking-widest mb-1">vs</div>
-                            <div id="matchResult" class="text-sm font-medium text-green-600 dark:text-green-400 leading-tight">Match Started</div>
+                        <div class="text-center w-2/12 flex flex-col items-center justify-center">
+                            <div class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">vs</div>
+                            <div id="matchResult" class="text-xs font-medium text-green-600 dark:text-green-400 leading-tight">...</div>
                         </div>
-                        <div class="text-center w-1/3">
-                            <h3 id="teamBName" class="font-bold text-lg sm:text-2xl truncate">Team B</h3>
-                            <p id="teamBScore" class="text-xl sm:text-3xl font-mono font-bold text-gray-700 dark:text-gray-200">-/-</p>
-                            <p id="teamBOvers" class="text-sm text-gray-500">0.0 ov</p>
+                        <div class="text-center w-5/12">
+                            <h3 id="teamBName" class="font-bold text-base sm:text-xl truncate leading-tight">Team B</h3>
+                            <p id="teamBScore" class="text-lg sm:text-3xl font-mono font-bold text-gray-700 dark:text-gray-200 mt-1">-/-</p>
+                            <p id="teamBOvers" class="text-xs text-gray-500">0.0 ov</p>
                         </div>
                     </div>
                     
-                    <div class="mt-4 pt-4 border-t dark:border-gray-700 text-center text-sm">
+                    <div class="mt-3 pt-2 border-t dark:border-gray-700 text-center text-xs sm:text-sm flex flex-wrap justify-center gap-x-4 gap-y-1">
                          <span id="matchCRR">CRR: 0.00</span> 
-                         <span id="matchTargetDisplay" class="ml-4 font-bold text-blue-600 hidden">Target: --</span>
-                         <span id="matchEquation" class="ml-4 text-purple-600 font-bold block sm:inline mt-1 sm:mt-0 hidden">Need 0 in 0</span>
+                         <span id="matchTargetDisplay" class="font-bold text-blue-600 hidden">Target: --</span>
+                         <span id="matchEquation" class="text-purple-600 font-bold block sm:inline hidden">Need 0 in 0</span>
                     </div>
 
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Layout: Flex-col on mobile to put scoring first, Grid on Desktop -->
+            <div class="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6">
                 
-                <div class="lg:col-span-2 space-y-6">
+                <!-- SCORING PANEL (Order 1 on Mobile) -->
+                <div id="scoringPanel" class="hidden order-1 lg:order-2 lg:col-span-1">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 sm:p-4 sticky top-20 border border-green-200 dark:border-green-900">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-bold text-green-700 dark:text-green-400 text-sm uppercase">Scorer Controls</h4>
+                            <button onclick="undoLastBall()" class="text-xs bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 px-2 py-1.5 rounded text-gray-700 dark:text-gray-300 transition active:scale-95">
+                                <i class="fas fa-undo"></i> Undo
+                            </button>
+                        </div>
+
+                        <div class="mb-3 space-y-1.5 text-xs sm:text-sm">
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                                <span class="text-gray-500 dark:text-gray-400">Striker:</span>
+                                <div id="displayStriker" class="font-bold text-right text-green-600 truncate ml-2 max-w-[150px]">--</div>
+                                <select id="controlStriker" class="hidden"></select>
+                            </div>
+                            <!-- Swap Button positioned between rows -->
+                            <div class="flex justify-center -my-3 z-10 relative">
+                                <button onclick="swapBatsmen()" class="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-full w-7 h-7 flex items-center justify-center shadow-sm border border-blue-200 active:scale-90 transition-transform" title="Swap Ends">
+                                   <i class="fas fa-exchange-alt rotate-90 text-xs"></i>
+                                </button>
+                           </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                                <span class="text-gray-500 dark:text-gray-400">Non-Striker:</span>
+                                <div id="displayNonStriker" class="font-bold text-right truncate ml-2 max-w-[150px]">--</div>
+                                <select id="controlNonStriker" class="hidden"></select>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-2 rounded mt-1">
+                                <span class="text-gray-500 dark:text-gray-400">Bowler:</span>
+                                <select id="controlBowler" class="bg-transparent font-bold text-right outline-none w-32 truncate text-blue-600 dark:text-blue-400"></select>
+                            </div>
+                        </div>
+
+                        <!-- Main Scoring Buttons -->
+                        <div class="grid grid-cols-4 gap-2 mb-3">
+                            <button onclick="scoreBall(0)" class="aspect-video sm:aspect-square bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-lg active:bg-gray-300">0</button>
+                            <button onclick="scoreBall(1)" class="aspect-video sm:aspect-square bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-lg active:bg-gray-300">1</button>
+                            <button onclick="scoreBall(2)" class="aspect-video sm:aspect-square bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-lg active:bg-gray-300">2</button>
+                            <button onclick="scoreBall(3)" class="aspect-video sm:aspect-square bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-lg active:bg-gray-300">3</button>
+                            <button onclick="scoreBall(4)" class="aspect-video sm:aspect-square bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded hover:bg-blue-200 font-bold text-lg border border-blue-300 active:scale-95 transition-transform">4</button>
+                            <button onclick="scoreBall(6)" class="aspect-video sm:aspect-square bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 rounded hover:bg-green-200 font-bold text-lg border border-green-300 active:scale-95 transition-transform">6</button>
+                            <button onclick="toggleExtrasMenu()" class="aspect-video sm:aspect-square bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-200 rounded hover:bg-yellow-200 font-bold text-xs uppercase tracking-tight">Extra</button>
+                            <button onclick="toggleWicketMenu()" class="aspect-video sm:aspect-square bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 font-bold text-sm shadow-md active:scale-95 transition-transform">OUT</button>
+                        </div>
+                        
+                        <div id="extrasPanel" class="hidden grid grid-cols-3 gap-2 mb-2 p-2 bg-yellow-50 dark:bg-yellow-900/30 rounded border border-yellow-200">
+                            <button onclick="scoreBall(0, 'WD')" class="py-3 text-xs font-bold bg-white dark:bg-gray-800 rounded shadow active:scale-95">Wide</button>
+                            <button onclick="scoreBall(0, 'NB')" class="py-3 text-xs font-bold bg-white dark:bg-gray-800 rounded shadow active:scale-95">No Ball</button>
+                            <button onclick="scoreBall(0, 'LB')" class="py-3 text-xs font-bold bg-white dark:bg-gray-800 rounded shadow active:scale-95">Leg Bye</button>
+                            <button onclick="scoreBall(0, 'BY')" class="py-3 text-xs font-bold bg-white dark:bg-gray-800 rounded shadow active:scale-95">Bye</button>
+                            <button onclick="scoreBall(1, 'WD')" class="py-3 text-xs font-bold bg-white dark:bg-gray-800 rounded shadow active:scale-95">WD+1</button>
+                            <button onclick="scoreBall(1, 'NB')" class="py-3 text-xs font-bold bg-white dark:bg-gray-800 rounded shadow active:scale-95">NB+1</button>
+                        </div>
+                         <div id="wicketPanel" class="hidden p-3 bg-red-50 dark:bg-red-900/30 rounded border border-red-200 mb-2">
+                             <p class="text-xs font-bold mb-2 text-red-700">Who is out?</p>
+                             <div class="flex gap-2 mb-3">
+                                <button onclick="setWicketVictim('striker')" id="btnWicketStriker" class="flex-1 py-2 text-xs font-bold bg-red-600 text-white rounded shadow">Striker</button>
+                                <button onclick="setWicketVictim('nonStriker')" id="btnWicketNonStriker" class="flex-1 py-2 text-xs font-bold bg-gray-300 dark:text-black rounded shadow">Non-Striker</button>
+                             </div>
+                             <p class="text-xs font-bold mb-1">Type?</p>
+                             <select id="wicketTypeSelect" class="w-full p-2 text-sm border rounded mb-3 dark:bg-gray-800 dark:border-gray-600">
+                                 <option value="bowled">Bowled</option>
+                                 <option value="caught">Caught</option>
+                                 <option value="lbw">LBW</option>
+                                 <option value="runout">Run Out</option>
+                                 <option value="stumped">Stumped</option>
+                             </select>
+                             <button onclick="confirmWicket()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm font-bold shadow">Confirm OUT</button>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2 mt-4 pt-2 border-t dark:border-gray-700">
+                            <button onclick="endInnings()" class="bg-gray-700 text-white text-[10px] sm:text-xs py-2 rounded hover:bg-gray-800">End Innings</button>
+                            <button onclick="endMatch()" class="bg-green-700 text-white text-[10px] sm:text-xs py-2 rounded hover:bg-green-800">Complete Match</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCORECARD DETAIL (Order 2 on Mobile) -->
+                <div class="order-2 lg:order-1 lg:col-span-2 space-y-4">
                     
                     <!-- NEW TABBED SCORECARD INTERFACE -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
@@ -279,148 +358,68 @@
                         
                         <div class="p-0">
                             <!-- Team A Content -->
-                            <div id="live-content-teamA" class="w-full">
+                            <div id="live-content-teamA" class="w-full overflow-x-auto">
                                 <!-- Populated by JS -->
                             </div>
                             <!-- Team B Content -->
-                            <div id="live-content-teamB" class="w-full hidden">
+                            <div id="live-content-teamB" class="w-full hidden overflow-x-auto">
                                 <!-- Populated by JS -->
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 overflow-x-auto">
-                         <h4 class="text-sm font-bold text-gray-500 uppercase mb-3">Recent Balls</h4>
-                         <div id="recentBallsContainer" class="flex space-x-2 pb-2"></div>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 overflow-hidden">
+                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Recent Balls</h4>
+                         <div id="recentBallsContainer" class="flex space-x-2 pb-2 overflow-x-auto hide-scroll"></div>
                     </div>
                 </div>
 
-                <div id="scoringPanel" class="hidden lg:col-span-1">
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sticky top-20 border border-green-200 dark:border-green-900">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="font-bold text-green-700 dark:text-green-400">Scorer Controls</h4>
-                            <button onclick="undoLastBall()" class="text-xs bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 px-2 py-1 rounded text-gray-700 dark:text-gray-300 transition">
-                                <i class="fas fa-undo"></i> Undo
-                            </button>
-                        </div>
-
-                        <div class="mb-4 space-y-2 text-sm">
-                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                                <span>Striker:</span>
-                                <div id="displayStriker" class="font-bold text-right text-green-600">--</div>
-                                <select id="controlStriker" class="hidden"></select>
-                            </div>
-                            <div class="flex justify-center -my-3 z-10 relative">
-                                <button onclick="swapBatsmen()" class="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-full w-8 h-8 flex items-center justify-center shadow-sm border border-blue-200 hover:bg-blue-200 transition-colors" title="Swap Striker/Non-Striker">
-                                   <i class="fas fa-exchange-alt rotate-90"></i>
-                                </button>
-                           </div>
-                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                                <span>Non-Striker:</span>
-                                <div id="displayNonStriker" class="font-bold text-right">--</div>
-                                <select id="controlNonStriker" class="hidden"></select>
-                            </div>
-                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                                <span>Bowler:</span>
-                                <select id="controlBowler" class="bg-transparent font-bold text-right outline-none w-32 truncate"></select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-4 gap-2 mb-4">
-                            <button onclick="scoreBall(0)" class="aspect-square bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-lg">0</button>
-                            <button onclick="scoreBall(1)" class="aspect-square bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-lg">1</button>
-                            <button onclick="scoreBall(2)" class="aspect-square bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-lg">2</button>
-                            <button onclick="scoreBall(3)" class="aspect-square bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-lg">3</button>
-                            <button onclick="scoreBall(4)" class="aspect-square bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded hover:bg-blue-200 font-bold text-lg border border-blue-300">4</button>
-                            <button onclick="scoreBall(6)" class="aspect-square bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 rounded hover:bg-green-200 font-bold text-lg border border-green-300">6</button>
-                            <button onclick="toggleExtrasMenu()" class="aspect-square bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-200 rounded hover:bg-yellow-200 font-bold text-sm">Extra</button>
-                            <button onclick="toggleWicketMenu()" class="aspect-square bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded hover:bg-red-200 font-bold text-sm">OUT</button>
-                        </div>
-                        
-                        <div id="extrasPanel" class="hidden grid grid-cols-3 gap-2 mb-2 p-2 bg-yellow-50 dark:bg-yellow-900/30 rounded border border-yellow-200">
-                            <button onclick="scoreBall(0, 'WD')" class="p-2 text-xs bg-white dark:bg-gray-800 rounded shadow">Wide</button>
-                            <button onclick="scoreBall(0, 'NB')" class="p-2 text-xs bg-white dark:bg-gray-800 rounded shadow">No Ball</button>
-                            <button onclick="scoreBall(0, 'LB')" class="p-2 text-xs bg-white dark:bg-gray-800 rounded shadow">Leg Bye</button>
-                            <button onclick="scoreBall(0, 'BY')" class="p-2 text-xs bg-white dark:bg-gray-800 rounded shadow">Bye</button>
-                            <button onclick="scoreBall(1, 'WD')" class="p-2 text-xs bg-white dark:bg-gray-800 rounded shadow">WD+1</button>
-                            <button onclick="scoreBall(1, 'NB')" class="p-2 text-xs bg-white dark:bg-gray-800 rounded shadow">NB+1</button>
-                        </div>
-                         <div id="wicketPanel" class="hidden p-2 bg-red-50 dark:bg-red-900/30 rounded border border-red-200 mb-2">
-                             <p class="text-xs font-bold mb-2">Who is out?</p>
-                             <div class="flex gap-2 mb-2">
-                                <button onclick="setWicketVictim('striker')" id="btnWicketStriker" class="flex-1 py-1 text-xs bg-red-600 text-white rounded">Striker</button>
-                                <button onclick="setWicketVictim('nonStriker')" id="btnWicketNonStriker" class="flex-1 py-1 text-xs bg-gray-300 dark:text-black rounded">Non-Striker</button>
-                             </div>
-                             <p class="text-xs font-bold mb-2">Type?</p>
-                             <select id="wicketTypeSelect" class="w-full p-1 text-sm border rounded mb-2 dark:bg-gray-800">
-                                 <option value="bowled">Bowled</option>
-                                 <option value="caught">Caught</option>
-                                 <option value="lbw">LBW</option>
-                                 <option value="runout">Run Out</option>
-                                 <option value="stumped">Stumped</option>
-                             </select>
-                             <button onclick="confirmWicket()" class="w-full bg-red-600 hover:bg-red-700 text-white py-1 rounded text-sm">Confirm OUT</button>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-2 mt-4">
-                            <button onclick="endInnings()" class="bg-gray-800 text-white text-xs py-2 rounded hover:bg-gray-900">End Innings</button>
-                            <button onclick="endMatch()" class="bg-green-700 text-white text-xs py-2 rounded hover:bg-green-800">Complete Match</button>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
         <div id="adminView" class="view-section hidden">
-            <h2 class="text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-3">Admin Dashboard</h2>
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 border-l-4 border-blue-500 pl-3">Admin Dashboard</h2>
             
-            <div class="grid grid-cols-1 gap-6">
+            <div class="grid grid-cols-1 gap-4">
                 <!-- UPDATED ADMIN NAVIGATION -->
-                <div class="flex space-x-2 border-b dark:border-gray-700 pb-2 overflow-x-auto">
-                    <button onclick="showAdminTab('createMatch')" class="admin-tab-btn active font-bold px-4 py-2 text-blue-600 border-b-2 border-blue-600 whitespace-nowrap">Create Match</button>
-                    <button onclick="showAdminTab('manageTeams')" class="admin-tab-btn font-bold px-4 py-2 text-gray-500 hover:text-blue-600 whitespace-nowrap">Manage Teams</button>
-                    <button onclick="showAdminTab('managePlayers')" class="admin-tab-btn font-bold px-4 py-2 text-gray-500 hover:text-blue-600 whitespace-nowrap">Manage Players</button>
+                <div class="flex space-x-2 border-b dark:border-gray-700 pb-2 overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+                    <button onclick="showAdminTab('createMatch')" class="admin-tab-btn active font-bold px-3 py-2 text-sm text-blue-600 border-b-2 border-blue-600 whitespace-nowrap">Create Match</button>
+                    <button onclick="showAdminTab('manageTeams')" class="admin-tab-btn font-bold px-3 py-2 text-sm text-gray-500 hover:text-blue-600 whitespace-nowrap">Manage Teams</button>
+                    <button onclick="showAdminTab('managePlayers')" class="admin-tab-btn font-bold px-3 py-2 text-sm text-gray-500 hover:text-blue-600 whitespace-nowrap">Manage Players</button>
                 </div>
 
-                <div id="adminTab-createMatch" class="admin-tab-content grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                        <h3 class="font-bold text-lg mb-4 flex items-center"><i class="fas fa-calendar-plus mr-2 text-green-500"></i> Create New Match</h3>
-                        <select id="matchTeamA" class="w-full p-2 border rounded mb-2 dark:bg-gray-700 dark:border-gray-600"><option>Loading teams...</option></select>
-                        <select id="matchTeamB" class="w-full p-2 border rounded mb-2 dark:bg-gray-700 dark:border-gray-600"><option>Loading teams...</option></select>
-                        <div class="flex space-x-2 mb-2">
-                            <input type="number" id="matchOvers" placeholder="Overs" value="20" class="w-1/2 p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
-                            <select id="matchType" class="w-1/2 p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
-                                <option value="T20">T20</option>
-                                <option value="ODI">ODI</option>
-                                <option value="Test">Test</option>
-                            </select>
+                <div id="adminTab-createMatch" class="admin-tab-content grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-lg mb-4 flex items-center"><i class="fas fa-calendar-plus mr-2 text-green-500"></i> New Match</h3>
+                        <div class="space-y-3">
+                            <select id="matchTeamA" class="w-full p-3 border rounded text-sm dark:bg-gray-700 dark:border-gray-600"><option>Loading teams...</option></select>
+                            <div class="flex justify-center items-center font-bold text-xs text-gray-400">VS</div>
+                            <select id="matchTeamB" class="w-full p-3 border rounded text-sm dark:bg-gray-700 dark:border-gray-600"><option>Loading teams...</option></select>
+                            <div class="flex space-x-2">
+                                <input type="number" id="matchOvers" placeholder="Overs" value="20" class="w-1/2 p-3 border rounded text-sm dark:bg-gray-700 dark:border-gray-600">
+                                <select id="matchType" class="w-1/2 p-3 border rounded text-sm dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="T20">T20</option>
+                                    <option value="ODI">ODI</option>
+                                    <option value="Test">Test</option>
+                                </select>
+                            </div>
+                            <button onclick="createNewMatch()" class="bg-green-600 text-white font-bold px-4 py-3 rounded hover:bg-green-700 w-full mt-2">Start Match</button>
                         </div>
-                        <button onclick="createNewMatch()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full">Start Match</button>
-                    </div>
-
-                    <!-- Intro Info Box -->
-                     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex flex-col justify-center items-center text-center">
-                         <div class="bg-blue-100 p-4 rounded-full text-blue-600 mb-4">
-                             <i class="fas fa-info-circle text-2xl"></i>
-                         </div>
-                         <h3 class="font-bold text-lg mb-2">How to start?</h3>
-                         <p class="text-sm text-gray-500 mb-4">1. Go to "Manage Players" to add players.<br>2. Go to "Manage Teams" to create teams from players.<br>3. Create a match here.</p>
-                         <button onclick="showAdminTab('managePlayers')" class="text-blue-600 font-bold text-sm hover:underline">Go to Manage Players</button>
                     </div>
                 </div>
 
                 <!-- UPDATED TEAM MANAGEMENT SECTION -->
-                <div id="adminTab-manageTeams" class="admin-tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="adminTab-manageTeams" class="admin-tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Create New Team Section (Updated Interface) -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow h-fit">
-                         <h3 class="font-bold text-lg mb-4 flex items-center"><i class="fas fa-plus-circle mr-2 text-blue-500"></i> Create New Team</h3>
+                    <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow h-fit">
+                         <h3 class="font-bold text-lg mb-4 flex items-center"><i class="fas fa-plus-circle mr-2 text-blue-500"></i> Create Team</h3>
                          <input type="text" id="newTeamName" placeholder="Team Name" class="w-full p-2 border rounded mb-3 dark:bg-gray-700 dark:border-gray-600">
                          
                          <div class="flex justify-between items-center mb-2">
                              <p class="text-sm font-bold">Select Players</p>
                              <label class="text-xs flex items-center cursor-pointer">
                                  <input type="checkbox" id="createTeamShowAvailable" onchange="filterSelectionList('teamCreationPlayerList', document.querySelector('#teamCreationSearch').value)" class="mr-1"> 
-                                 Show available only
+                                 Available only
                              </label>
                          </div>
                          
@@ -432,24 +431,24 @@
                              <p class="text-xs text-gray-500 text-center mt-4">Loading players pool...</p>
                          </div>
 
-                         <button onclick="createNewTeam()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full font-bold">Save Team</button>
+                         <button onclick="createNewTeam()" class="bg-blue-600 text-white px-4 py-3 rounded hover:bg-blue-700 w-full font-bold shadow">Save Team</button>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                    <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold text-lg"><i class="fas fa-list mr-2 text-purple-500"></i> Existing Teams</h3>
-                            <button onclick="loadManageTeams()" class="text-sm bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded"><i class="fas fa-sync"></i> Refresh</button>
+                            <button onclick="loadManageTeams()" class="text-xs bg-gray-200 dark:bg-gray-700 px-3 py-1.5 rounded"><i class="fas fa-sync"></i></button>
                         </div>
-                        <div id="manageTeamsList" class="space-y-3 max-h-[600px] overflow-y-auto"></div>
+                        <div id="manageTeamsList" class="space-y-3 max-h-[500px] overflow-y-auto"></div>
                     </div>
                 </div>
                 
                 <!-- NEW: GLOBAL PLAYERS TAB -->
-                <div id="adminTab-managePlayers" class="admin-tab-content hidden mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div id="adminTab-managePlayers" class="admin-tab-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Add Player Form -->
-                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow md:col-span-1 h-fit">
-                            <h3 class="font-bold text-lg mb-4 text-green-600"><i class="fas fa-user-plus mr-2"></i> Add New Player</h3>
+                        <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow md:col-span-1 h-fit order-1 md:order-2">
+                            <h3 class="font-bold text-lg mb-4 text-green-600"><i class="fas fa-user-plus mr-2"></i> Add Player</h3>
                             <div class="space-y-3">
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Player Name</label>
@@ -469,12 +468,12 @@
                         </div>
 
                         <!-- Player Database List -->
-                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow md:col-span-2">
+                        <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow md:col-span-2 order-2 md:order-1">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold text-lg">Player Database</h3>
-                                <input type="text" onkeyup="filterGlobalPlayers(this.value)" placeholder="Search database..." class="p-2 border rounded text-sm w-48 dark:bg-gray-700 dark:border-gray-600">
+                                <input type="text" onkeyup="filterGlobalPlayers(this.value)" placeholder="Search..." class="p-2 border rounded text-sm w-32 sm:w-48 dark:bg-gray-700 dark:border-gray-600">
                             </div>
-                            <div id="globalPlayerDbList" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[600px] overflow-y-auto">
+                            <div id="globalPlayerDbList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-h-[500px] overflow-y-auto">
                                 <!-- Players will load here -->
                             </div>
                         </div>
@@ -485,26 +484,28 @@
         </div>
 
         <div id="tournamentsView" class="view-section hidden">
-            <h2 class="text-2xl font-bold mb-4 border-l-4 border-yellow-500 pl-3">Tournaments</h2>
-            <div id="tournamentList" class="space-y-4"></div>
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 border-l-4 border-yellow-500 pl-3">Tournaments</h2>
+            <div id="tournamentList" class="space-y-4 text-center text-gray-500 py-10">
+                Coming soon...
+            </div>
         </div>
 
     </div>
 
-    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded shadow-lg transform translate-y-20 opacity-0 transition duration-300 z-50">Notification</div>
+    <div id="toast" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 bg-gray-800 text-white px-6 py-3 rounded shadow-lg transform translate-y-20 opacity-0 transition duration-300 z-[60] text-center sm:text-left text-sm font-medium">Notification</div>
 
     <!-- UPDATED EDIT TEAM MODAL -->
-    <div id="editTeamModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+    <div id="editTeamModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50 p-4">
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
-        <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-lg mx-auto rounded shadow-lg z-50 overflow-y-auto max-h-[90vh]">
-            <div class="modal-content py-4 text-left px-6">
+        <div class="modal-container bg-white dark:bg-gray-800 w-full md:max-w-lg mx-auto rounded shadow-lg z-50 overflow-y-auto max-h-[90vh] flex flex-col">
+            <div class="modal-content py-4 text-left px-4 sm:px-6">
                 <div class="flex justify-between items-center pb-3 border-b dark:border-gray-700">
-                    <p class="text-2xl font-bold">Edit Team</p>
-                    <div class="modal-close cursor-pointer z-50" onclick="closeModal('editTeamModal')">
+                    <p class="text-xl font-bold">Edit Team</p>
+                    <div class="modal-close cursor-pointer z-50 p-2" onclick="closeModal('editTeamModal')">
                         <i class="fas fa-times"></i>
                     </div>
                 </div>
-                <div class="my-5">
+                <div class="my-4">
                     <input type="hidden" id="editTeamId">
                     <div class="mb-4">
                         <label class="block text-sm font-bold mb-2">Team Name</label>
@@ -515,66 +516,64 @@
                         <div id="editTeamPlayersList" class="max-h-40 overflow-y-auto border rounded p-2 mb-3 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50"></div>
                         
                         <div class="border-t dark:border-gray-600 pt-3">
-                            <label class="block text-xs font-bold mb-1 text-green-600">Add More Players from Database</label>
+                            <label class="block text-xs font-bold mb-1 text-green-600">Add Players from Database</label>
                             
                             <div class="flex justify-between items-center mb-2">
-                                <input type="text" id="editTeamSearch" onkeyup="filterSelectionList('modalPlayerSelectionList', this.value)" placeholder="Search player to add..." class="w-2/3 p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <input type="text" id="editTeamSearch" onkeyup="filterSelectionList('modalPlayerSelectionList', this.value)" placeholder="Search..." class="w-2/3 p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600">
                                 <label class="text-xs flex items-center cursor-pointer ml-2">
                                      <input type="checkbox" id="editTeamShowAvailable" onchange="filterSelectionList('modalPlayerSelectionList', document.querySelector('#editTeamSearch').value)" class="mr-1"> 
-                                     Available Only
+                                     Avail. Only
                                  </label>
                             </div>
 
                             <div id="modalPlayerSelectionList" class="h-32 overflow-y-auto border rounded p-2 dark:border-gray-600 bg-white dark:bg-gray-800">
                                 <!-- Checkboxes will load here -->
                             </div>
-                            <button onclick="addSelectedPlayersToEdit()" class="w-full mt-2 bg-green-600 text-white px-3 py-1.5 rounded text-sm font-bold">Add Selected Players</button>
+                            <button onclick="addSelectedPlayersToEdit()" class="w-full mt-2 bg-green-600 text-white px-3 py-2 rounded text-sm font-bold">Add Selected Players</button>
                         </div>
                     </div>
                 </div>
                 <div class="flex justify-end pt-2 border-t dark:border-gray-700">
-                    <button onclick="saveTeamName()" class="px-4 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 mr-2">Save Team</button>
-                    <button onclick="closeModal('editTeamModal')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Close</button>
+                    <button onclick="saveTeamName()" class="px-4 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 mr-2 text-sm">Save Team</button>
+                    <button onclick="closeModal('editTeamModal')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 text-sm">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="matchSetupModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+    <div id="matchSetupModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50 p-4">
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-70"></div>
-        <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+        <div class="modal-container bg-white dark:bg-gray-800 w-full md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto max-h-[90vh]">
             <div class="modal-content py-4 text-left px-6">
                 <div class="flex justify-between items-center pb-3 border-b dark:border-gray-700">
-                    <p class="text-2xl font-bold text-green-600">Match Setup</p>
-                    <div class="cursor-pointer z-50" onclick="closeModal('matchSetupModal')">
+                    <p class="text-xl font-bold text-green-600">Match Setup</p>
+                    <div class="cursor-pointer z-50 p-2" onclick="closeModal('matchSetupModal')">
                         <i class="fas fa-times"></i>
                     </div>
                 </div>
                 <div class="my-5 space-y-4">
                     <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-100 dark:border-blue-800">
-                        <p class="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">Batting Team Squad (Team A)</p>
-                        <h3 id="setupTeamAName" class="text-lg font-bold">Team Name</h3>
+                        <p class="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">Batting: <span id="setupTeamAName">Team A</span></p>
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-1">Striker</label>
-                        <select id="setupStriker" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-green-500"></select>
+                        <select id="setupStriker" class="w-full p-3 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-green-500 text-sm"></select>
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-1">Non-Striker</label>
-                        <select id="setupNonStriker" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-green-500"></select>
+                        <select id="setupNonStriker" class="w-full p-3 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-green-500 text-sm"></select>
                     </div>
                     <div class="border-t dark:border-gray-700 my-4"></div>
                     <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-100 dark:border-red-800">
-                        <p class="text-xs font-bold text-red-600 dark:text-red-400 mb-1">Bowling Team Squad (Team B)</p>
-                        <h3 id="setupTeamBName" class="text-lg font-bold">Team Name</h3>
+                        <p class="text-xs font-bold text-red-600 dark:text-red-400 mb-1">Bowling: <span id="setupTeamBName">Team B</span></p>
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-1">Opening Bowler</label>
-                        <select id="setupBowler" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-green-500"></select>
+                        <select id="setupBowler" class="w-full p-3 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-green-500 text-sm"></select>
                     </div>
                 </div>
                 <div class="flex justify-end pt-2">
-                    <button onclick="confirmMatchStart()" class="px-6 py-2 bg-green-600 text-white font-bold rounded shadow hover:bg-green-700 w-full">
+                    <button onclick="confirmMatchStart()" class="px-6 py-3 bg-green-600 text-white font-bold rounded shadow hover:bg-green-700 w-full text-sm">
                         Start Match <i class="fas fa-arrow-right ml-2"></i>
                     </button>
                 </div>
@@ -582,35 +581,34 @@
         </div>
     </div>
     
-    <div id="secondInningsModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+    <div id="secondInningsModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50 p-4">
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-80"></div>
-        <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+        <div class="modal-container bg-white dark:bg-gray-800 w-full md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
             <div class="modal-content py-4 text-left px-6">
                 <div class="text-center mb-6">
                     <div class="inline-block p-3 rounded-full bg-indigo-100 text-indigo-600 mb-2">
                         <i class="fas fa-exchange-alt text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold">Start 2nd Innings</h3>
-                    <p class="text-gray-500">Select Batsmen and Bowler</p>
+                    <h3 class="text-xl font-bold">Start 2nd Innings</h3>
                 </div>
                 
                 <div class="my-5 space-y-4">
                     <div class="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded border border-indigo-100 dark:border-indigo-800">
-                         <h3 class="font-bold text-lg mb-1" id="inn2BattingTeamName">Batting Team</h3>
+                         <h3 class="font-bold text-sm mb-1" id="inn2BattingTeamName">Batting Team</h3>
                          <p class="text-sm text-gray-600 dark:text-gray-400">Target: <span id="inn2Target" class="font-bold text-red-500">0</span> Runs</p>
                     </div>
                     
                     <div>
                         <label class="block text-sm font-bold mb-1">Striker</label>
-                        <select id="inn2Striker" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></select>
+                        <select id="inn2Striker" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"></select>
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-1">Non-Striker</label>
-                        <select id="inn2NonStriker" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></select>
+                        <select id="inn2NonStriker" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"></select>
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-1">Opening Bowler</label>
-                        <select id="inn2Bowler" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></select>
+                        <select id="inn2Bowler" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"></select>
                     </div>
                 </div>
 
@@ -623,16 +621,16 @@
         </div>
     </div>
 
-    <div id="newBowlerModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+    <div id="newBowlerModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50 p-4">
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-90"></div>
-        <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+        <div class="modal-container bg-white dark:bg-gray-800 w-full md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
             <div class="modal-content py-6 text-left px-6">
                 <div class="text-center mb-6">
                     <div class="inline-block p-3 rounded-full bg-green-100 text-green-600 mb-2">
                         <i class="fas fa-users text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold">Over Completed!</h3>
-                    <p class="text-gray-500">Select new bowler for the next over</p>
+                    <h3 class="text-xl font-bold">Over Completed!</h3>
+                    <p class="text-gray-500 text-sm">Select new bowler</p>
                 </div>
                 <div class="mb-6">
                     <label class="block text-sm font-bold mb-2">New Bowler</label>
@@ -646,16 +644,16 @@
         </div>
     </div>
 
-    <div id="newBatsmanModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+    <div id="newBatsmanModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50 p-4">
         <div class="modal-overlay absolute w-full h-full bg-red-900 opacity-90"></div>
-        <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+        <div class="modal-container bg-white dark:bg-gray-800 w-full md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
             <div class="modal-content py-6 text-left px-6">
                 <div class="text-center mb-6">
                     <div class="inline-block p-3 rounded-full bg-red-100 text-red-600 mb-2">
                         <i class="fas fa-user-minus text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-red-600">Wicket!</h3>
-                    <p class="text-gray-500">Select next batsman</p>
+                    <h3 class="text-xl font-bold text-red-600">Wicket!</h3>
+                    <p class="text-gray-500 text-sm">Select next batsman</p>
                 </div>
                 <div class="mb-6">
                     <input type="hidden" id="emptySlotId"> <label class="block text-sm font-bold mb-2">New Batsman</label>
@@ -668,20 +666,20 @@
         </div>
     </div>
 
-    <div id="playerProfileModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+    <div id="playerProfileModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50 p-4">
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-80" onclick="closeModal('playerProfileModal')"></div>
-        <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-lg mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto max-h-[90vh]">
+        <div class="modal-container bg-white dark:bg-gray-800 w-full md:max-w-lg mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto max-h-[90vh]">
             <div class="modal-content text-left">
                 <!-- Header -->
-                <div class="relative bg-gradient-to-r from-purple-600 to-blue-600 h-32 p-6 flex items-end">
-                    <div class="absolute top-4 right-4 text-white cursor-pointer" onclick="closeModal('playerProfileModal')">
+                <div class="relative bg-gradient-to-r from-purple-600 to-blue-600 h-24 sm:h-32 p-4 sm:p-6 flex items-end">
+                    <div class="absolute top-4 right-4 text-white cursor-pointer p-2" onclick="closeModal('playerProfileModal')">
                         <i class="fas fa-times text-xl"></i>
                     </div>
                     <div class="translate-y-1/2 flex items-end relative group">
-                        <div class="w-24 h-24 bg-white dark:bg-gray-700 rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center text-3xl font-bold text-gray-400 shadow-lg overflow-hidden" id="profileAvatar">
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 bg-white dark:bg-gray-700 rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center text-3xl font-bold text-gray-400 shadow-lg overflow-hidden" id="profileAvatar">
                             P
                         </div>
-                        <button onclick="document.getElementById('profileImageFile').click()" class="absolute bottom-0 right-0 bg-white text-purple-600 p-1.5 rounded-full shadow-lg border border-purple-200 hover:bg-gray-100 transition z-10" title="Upload Photo from Gallery">
+                        <button onclick="document.getElementById('profileImageFile').click()" class="absolute bottom-0 right-0 bg-white text-purple-600 p-1.5 rounded-full shadow-lg border border-purple-200 hover:bg-gray-100 transition z-10" title="Upload Photo">
                             <i class="fas fa-camera text-sm"></i>
                         </button>
                         <input type="file" id="profileImageFile" accept="image/*" class="hidden" onchange="handleImageUpload(this)">
@@ -689,33 +687,32 @@
                 </div>
                 
                 <!-- Body -->
-                <div class="pt-16 px-6 pb-6">
+                <div class="pt-14 sm:pt-16 px-4 sm:px-6 pb-6">
                     <div class="mb-4">
-                        <h2 id="profileName" class="text-3xl font-bold text-gray-800 dark:text-white leading-none">Player Name</h2>
+                        <h2 id="profileName" class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white leading-none">Player Name</h2>
                         <span id="profileUniqueId" class="text-xs text-gray-400 font-mono mt-1 block tracking-wider">ID: --</span>
                     </div>
 
-                    <!-- Manual URL Edit (Hidden by default, used as fallback or advanced) -->
                     <div id="imageEditContainer" class="hidden mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded border border-purple-200 dark:border-purple-800">
                          <p class="text-xs text-green-600 font-bold mb-1"><i class="fas fa-check-circle"></i> Photo Updated!</p>
                     </div>
 
                     <p class="text-sm text-gray-500 mb-6 font-bold uppercase tracking-wide">Career Statistics</p>
 
-                    <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4 text-center">
                         <!-- Batting Stats -->
-                        <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border dark:border-gray-700 col-span-2 sm:col-span-1 shadow-sm">
-                            <h4 class="text-purple-600 font-bold mb-3 border-b pb-1 flex justify-center items-center"><i class="fas fa-baseball-bat-ball mr-2"></i> BATTING</h4>
-                            <div class="grid grid-cols-2 gap-y-3 text-sm">
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-3 sm:p-4 rounded-xl border dark:border-gray-700 col-span-2 sm:col-span-1 shadow-sm">
+                            <h4 class="text-purple-600 font-bold mb-3 border-b pb-1 flex justify-center items-center text-sm"><i class="fas fa-baseball-bat-ball mr-2"></i> BATTING</h4>
+                            <div class="grid grid-cols-2 gap-y-2 text-sm">
                                 <div class="text-gray-500 text-left pl-2">Matches</div>
                                 <div id="profMatches" class="font-bold text-right pr-2">0</div>
                                 <div class="text-gray-500 text-left pl-2">Runs</div>
-                                <div id="profRuns" class="font-bold text-xl text-right pr-2">0</div>
+                                <div id="profRuns" class="font-bold text-lg text-right pr-2">0</div>
                                 <div class="text-gray-500 text-left pl-2">Balls</div>
                                 <div id="profBalls" class="font-bold text-right pr-2">0</div>
                                 <div class="text-gray-500 text-left pl-2">Highest</div>
                                 <div id="profHS" class="font-bold text-right pr-2">0</div>
-                                <div class="text-gray-500 text-left pl-2">Strike Rate</div>
+                                <div class="text-gray-500 text-left pl-2">S.Rate</div>
                                 <div id="profSR" class="font-bold text-green-600 text-right pr-2">0.00</div>
                                 <div class="text-gray-500 text-left pl-2">4s / 6s</div>
                                 <div id="profBoundaries" class="font-bold text-right pr-2">0 / 0</div>
@@ -723,21 +720,19 @@
                         </div>
 
                         <!-- Bowling Stats -->
-                        <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border dark:border-gray-700 col-span-2 sm:col-span-1 shadow-sm">
-                            <h4 class="text-blue-600 font-bold mb-3 border-b pb-1 flex justify-center items-center"><i class="fas fa-bullseye mr-2"></i> BOWLING</h4>
-                            <div class="grid grid-cols-2 gap-y-3 text-sm">
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-3 sm:p-4 rounded-xl border dark:border-gray-700 col-span-2 sm:col-span-1 shadow-sm">
+                            <h4 class="text-blue-600 font-bold mb-3 border-b pb-1 flex justify-center items-center text-sm"><i class="fas fa-bullseye mr-2"></i> BOWLING</h4>
+                            <div class="grid grid-cols-2 gap-y-2 text-sm">
                                 <div class="text-gray-500 text-left pl-2">Innings</div>
                                 <div id="profBowlInns" class="font-bold text-right pr-2">0</div>
                                 <div class="text-gray-500 text-left pl-2">Wickets</div>
-                                <div id="profWickets" class="font-bold text-xl text-right pr-2">0</div>
+                                <div id="profWickets" class="font-bold text-lg text-right pr-2">0</div>
                                 <div class="text-gray-500 text-left pl-2">Overs</div>
                                 <div id="profOvers" class="font-bold text-right pr-2">0</div>
-                                <div class="text-gray-500 text-left pl-2">Runs Given</div>
+                                <div class="text-gray-500 text-left pl-2">Runs</div>
                                 <div id="profRunsConceded" class="font-bold text-right pr-2">0</div>
-                                <div class="text-gray-500 text-left pl-2">Economy</div>
+                                <div class="text-gray-500 text-left pl-2">Econ</div>
                                 <div id="profEco" class="font-bold text-red-500 text-right pr-2">0.00</div>
-                                <div class="text-gray-500 text-left pl-2">Best</div>
-                                <div id="profBestBowl" class="font-bold text-right pr-2">-/-</div>
                             </div>
                         </div>
                     </div>
@@ -937,6 +932,7 @@
                     authContainer.classList.add('hidden');
                     appContainer.classList.remove('hidden');
                     userProfile.classList.remove('hidden');
+                    userProfile.classList.add('flex');
 
                     updateUserProfileUI();
                     loadTeamsForMatch();
@@ -945,6 +941,7 @@
                     await signOut(auth);
                     appContainer.classList.add('hidden');
                     userProfile.classList.add('hidden');
+                    userProfile.classList.remove('flex');
                     authContainer.classList.remove('hidden');
                 }
             } else {
@@ -956,6 +953,7 @@
 
                 appContainer.classList.add('hidden');
                 userProfile.classList.add('hidden');
+                userProfile.classList.remove('flex');
                 authContainer.classList.remove('hidden');
             }
 
@@ -1111,9 +1109,9 @@
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.getElementById(`${viewName}View`).classList.remove('hidden');
             
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active-nav-btn', 'bg-green-100', 'dark:bg-green-900'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active-nav-btn', 'bg-green-100', 'dark:bg-green-900', 'text-green-700', 'dark:text-green-300'));
             const activeBtn = document.querySelector(`.nav-btn[data-target="${viewName}"]`);
-            if(activeBtn) activeBtn.classList.add('active-nav-btn', 'bg-green-100', 'dark:bg-green-900');
+            if(activeBtn) activeBtn.classList.add('active-nav-btn', 'bg-green-100', 'dark:bg-green-900', 'text-green-700', 'dark:text-green-300');
 
             if(viewName === 'live') loadMatches();
             if(viewName === 'tournaments') loadTournaments();
@@ -1150,7 +1148,7 @@
         function renderMatchCard(match) {
             const isLive = match.status === 'live';
             const isAdmin = !!currentUser; 
-            const createdBy = match.createdByName ? `<small class="text-xs text-gray-400 mt-1 block"><i class="fas fa-user-tag mr-1"></i>Host: ${match.createdByName}</small>` : '';
+            const createdBy = match.createdByName ? `<small class="text-[10px] text-gray-400 mt-1 block"><i class="fas fa-user-tag mr-1"></i>Host: ${match.createdByName}</small>` : '';
 
             let timeDisplay = "";
             
@@ -1161,37 +1159,37 @@
                 const start = match.createdAt.toDate ? match.createdAt.toDate() : new Date(match.createdAt);
                 const end = match.endedAt.toDate ? match.endedAt.toDate() : new Date(match.endedAt);
                 const diff = end - start;
-                timeDisplay = `<div class="text-xs text-gray-500 font-mono mt-2 flex items-center justify-center bg-gray-50 dark:bg-gray-700/30 py-1 rounded"><i class="fas fa-history mr-1"></i>Duration: ${formatDuration(diff)}</div>`;
+                timeDisplay = `<div class="text-[10px] text-gray-500 font-mono mt-2 flex items-center justify-center bg-gray-50 dark:bg-gray-700/30 py-1 rounded"><i class="fas fa-history mr-1"></i>Duration: ${formatDuration(diff)}</div>`;
             }
 
             return `
                 <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition overflow-hidden border-l-4 ${isLive ? 'border-red-500' : 'border-gray-300'}">
                     ${isAdmin ? `
-                        <button onclick="deleteMatch('${match.id}')" class="absolute top-2 right-2 text-gray-400 hover:text-red-600 p-2 z-10" title="Delete Match">
+                        <button onclick="deleteMatch('${match.id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-600 p-2 z-10" title="Delete Match">
                             <i class="fas fa-trash"></i>
                         </button>
                     ` : ''}
-                    <div class="p-4 cursor-pointer" onclick="openMatch('${match.id}')">
+                    <div class="p-3 sm:p-4 cursor-pointer" onclick="openMatch('${match.id}')">
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs font-bold uppercase text-gray-400">${match.tournamentName || 'Friendly'}</span>
-                            ${isLive ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>' : ''}
+                            <span class="text-[10px] font-bold uppercase text-gray-400 tracking-wider truncate max-w-[70%]">${match.tournamentName || 'Friendly'}</span>
+                            ${isLive ? '<span class="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>' : ''}
                         </div>
                         <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-bold text-lg">${match.teamAName}</h3>
-                                <p class="text-gray-600 dark:text-gray-400 text-sm">${match.score?.teamA || '0/0'}</p>
+                            <div class="flex flex-col items-start w-2/5">
+                                <h3 class="font-bold text-base sm:text-lg leading-tight truncate w-full" title="${match.teamAName}">${match.teamAName}</h3>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm mt-0.5">${match.score?.teamA || '0/0'}</p>
                             </div>
-                            <span class="text-gray-300 font-bold text-xl">VS</span>
-                            <div class="text-right">
-                                <h3 class="font-bold text-lg">${match.teamBName}</h3>
-                                <p class="text-gray-600 dark:text-gray-400 text-sm">${match.score?.teamB || '0/0'}</p>
+                            <span class="text-gray-300 font-bold text-sm mx-1">VS</span>
+                            <div class="flex flex-col items-end w-2/5 text-right">
+                                <h3 class="font-bold text-base sm:text-lg leading-tight truncate w-full" title="${match.teamBName}">${match.teamBName}</h3>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm mt-0.5">${match.score?.teamB || '0/0'}</p>
                             </div>
                         </div>
                         
                         ${timeDisplay}
 
                         <div class="mt-2 pt-2 border-t dark:border-gray-700">
-                             <div class="text-xs text-gray-500 text-center">
+                             <div class="text-xs text-gray-500 text-center truncate">
                                 ${match.status === 'completed' ? `<span class="text-green-600 font-bold">${match.result || 'Match Completed'}</span>` : 'Click to view scoreboard'}
                              </div>
                              ${createdBy}
@@ -1222,7 +1220,7 @@
 
                 list.innerHTML = '';
                 if(snapshot.empty) {
-                    list.innerHTML = '<p class="col-span-full text-center text-gray-500">No matches found</p>';
+                    list.innerHTML = '<p class="col-span-full text-center text-gray-500 mt-10">No matches found</p>';
                     return;
                 }
 
@@ -1233,7 +1231,7 @@
                     let dateStr = "Unknown Date";
                     if(match.createdAt) {
                         const dateObj = match.createdAt.toDate ? match.createdAt.toDate() : new Date(match.createdAt);
-                        dateStr = dateObj.toLocaleDateString('bn-BD', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     }
                     if(!groupedMatches[dateStr]) groupedMatches[dateStr] = [];
                     groupedMatches[dateStr].push(match);
@@ -1242,7 +1240,7 @@
                 Object.keys(groupedMatches).forEach(date => {
                     list.innerHTML += `
                         <div class="col-span-full mt-2 mb-1">
-                            <h3 class="text-gray-500 dark:text-gray-400 font-bold border-b dark:border-gray-700 pb-1 flex items-center">
+                            <h3 class="text-gray-500 dark:text-gray-400 text-sm font-bold border-b dark:border-gray-700 pb-1 flex items-center">
                                 <i class="fas fa-calendar-alt mr-2 text-green-500"></i> ${date}
                             </h3>
                         </div>
@@ -1401,7 +1399,7 @@
             document.getElementById('live-tab-teamA').innerText = match.teamAName;
             document.getElementById('live-tab-teamB').innerText = match.teamBName;
 
-            document.getElementById('matchTournamentName').innerText = match.type + ' • ' + (match.tournamentName || 'Quick Match');
+            document.getElementById('matchTournamentName').innerText = match.type + ' • ' + (match.tournamentName || 'Friendly');
             document.getElementById('matchHostName').innerText = match.createdByName ? `Hosted by ${match.createdByName}` : '';
             document.getElementById('matchResult').innerText = match.result || (match.status === 'live' ? 'Match Live' : 'Match Completed');
             
@@ -1420,15 +1418,15 @@
             
             const timeline = document.getElementById('recentBallsContainer');
             timeline.innerHTML = '';
-            state.timeline.slice(0, 12).forEach(b => {
-                let color = 'bg-gray-200 dark:bg-gray-700';
+            state.timeline.slice(0, 15).forEach(b => {
+                let color = 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
                 let txt = b.runs;
                 if(b.isWicket) { color = 'bg-red-500 text-white'; txt='W'; }
                 else if(b.runs === 4) { color = 'bg-blue-500 text-white'; }
                 else if(b.runs === 6) { color = 'bg-green-500 text-white'; }
-                else if(b.extrasType) { color = 'bg-yellow-200 dark:bg-yellow-800'; txt=b.extrasType; }
+                else if(b.extrasType) { color = 'bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100'; txt=b.extrasType; }
                 
-                timeline.innerHTML += `<div class="${color} score-ball shadow-sm flex-shrink-0">${txt}</div>`;
+                timeline.innerHTML += `<div class="${color} score-ball shadow-sm flex-shrink-0 text-xs">${txt}</div>`;
             });
             
             const crr = (innData.runs / (innData.overs + (innData.balls/6)) || 0).toFixed(2);
@@ -1460,15 +1458,15 @@
 
                 let batHtml = `
                     <div class="mb-4">
-                        <table class="w-full text-sm">
-                            <thead class="text-xs text-gray-500 bg-gray-50 dark:bg-gray-700">
+                        <table class="w-full text-xs sm:text-sm">
+                            <thead class="text-gray-500 bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th class="text-left py-2 px-3">Batting</th>
-                                    <th class="text-right py-2 px-2">R</th>
-                                    <th class="text-right py-2 px-2">B</th>
-                                    <th class="text-right py-2 px-2 hidden sm:table-cell">4s</th>
-                                    <th class="text-right py-2 px-2 hidden sm:table-cell">6s</th>
-                                    <th class="text-right py-2 px-2">SR</th>
+                                    <th class="text-left py-2 px-2">Batting</th>
+                                    <th class="text-right py-2 px-1">R</th>
+                                    <th class="text-right py-2 px-1">B</th>
+                                    <th class="text-right py-2 px-1 hidden sm:table-cell">4s</th>
+                                    <th class="text-right py-2 px-1 hidden sm:table-cell">6s</th>
+                                    <th class="text-right py-2 px-1">SR</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1492,10 +1490,10 @@
                         sr = stats.balls > 0 ? ((stats.runs/stats.balls)*100).toFixed(0) : "0";
                         
                         if (stats.out) {
-                            status = `<span class="text-red-500 text-xs">(${stats.out})</span>`;
+                            status = `<span class="text-red-500 text-[10px]">(${stats.out})</span>`;
                             rowClass += " bg-red-50/30 dark:bg-red-900/10";
                         } else if (p.id === activeStriker || p.id === activeNonStriker) {
-                            status = `<span class="text-green-600 text-xs font-bold">Batting</span>`;
+                            status = `<span class="text-green-600 text-[10px] font-bold">Batting</span>`;
                             rowClass += " bg-green-50 dark:bg-green-900/20";
                             if(p.id === activeStriker) nameDisplay += " *";
                         } else {
@@ -1505,15 +1503,15 @@
 
                     batHtml += `
                         <tr class="${rowClass}">
-                            <td class="py-2 px-3">
-                                <div class="font-bold text-gray-800 dark:text-gray-200">${nameDisplay}</div>
-                                <div class="text-xs text-gray-400">${status}</div>
+                            <td class="py-2 px-2">
+                                <div class="font-bold text-gray-800 dark:text-gray-200 truncate max-w-[120px] sm:max-w-none">${nameDisplay}</div>
+                                <div class="text-[10px] text-gray-400 leading-none">${status}</div>
                             </td>
-                            <td class="text-right font-bold px-2">${runs}</td>
-                            <td class="text-right text-gray-500 px-2">${balls}</td>
-                            <td class="text-right text-gray-400 px-2 hidden sm:table-cell">${fours}</td>
-                            <td class="text-right text-gray-400 px-2 hidden sm:table-cell">${sixes}</td>
-                            <td class="text-right text-xs text-gray-500 px-2">${sr}</td>
+                            <td class="text-right font-bold px-1">${runs}</td>
+                            <td class="text-right text-gray-500 px-1">${balls}</td>
+                            <td class="text-right text-gray-400 px-1 hidden sm:table-cell">${fours}</td>
+                            <td class="text-right text-gray-400 px-1 hidden sm:table-cell">${sixes}</td>
+                            <td class="text-right text-xs text-gray-500 px-1">${sr}</td>
                         </tr>
                     `;
                 });
@@ -1521,15 +1519,15 @@
 
                 let bowlHtml = `
                     <div class="mb-2">
-                        <table class="w-full text-sm">
-                            <thead class="text-xs text-gray-500 bg-gray-50 dark:bg-gray-700">
+                        <table class="w-full text-xs sm:text-sm">
+                            <thead class="text-gray-500 bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th class="text-left py-2 px-3">Bowling</th>
-                                    <th class="text-right py-2 px-2">O</th>
-                                    <th class="text-right py-2 px-2">M</th>
-                                    <th class="text-right py-2 px-2">R</th>
-                                    <th class="text-right py-2 px-2">W</th>
-                                    <th class="text-right py-2 px-2">Eco</th>
+                                    <th class="text-left py-2 px-2">Bowling</th>
+                                    <th class="text-right py-2 px-1">O</th>
+                                    <th class="text-right py-2 px-1">M</th>
+                                    <th class="text-right py-2 px-1">R</th>
+                                    <th class="text-right py-2 px-1">W</th>
+                                    <th class="text-right py-2 px-1">Eco</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1546,12 +1544,12 @@
                         
                         bowlHtml += `
                             <tr class="border-b dark:border-gray-700 ${isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : ''}">
-                                <td class="py-2 px-3 font-bold ${isCurrent ? 'text-blue-700 dark:text-blue-300' : ''}">${p.name}</td>
-                                <td class="text-right px-2">${overs}</td>
-                                <td class="text-right px-2 text-gray-400">${stats.maidens}</td>
-                                <td class="text-right px-2">${stats.runs}</td>
-                                <td class="text-right px-2 font-bold text-red-600">${stats.wickets}</td>
-                                <td class="text-right px-2 text-xs text-gray-500">${eco}</td>
+                                <td class="py-2 px-2 font-bold truncate max-w-[120px] sm:max-w-none ${isCurrent ? 'text-blue-700 dark:text-blue-300' : ''}">${p.name}</td>
+                                <td class="text-right px-1">${overs}</td>
+                                <td class="text-right px-1 text-gray-400">${stats.maidens}</td>
+                                <td class="text-right px-1">${stats.runs}</td>
+                                <td class="text-right px-1 font-bold text-red-600">${stats.wickets}</td>
+                                <td class="text-right px-1 text-xs text-gray-500">${eco}</td>
                             </tr>
                         `;
                     }
@@ -1612,10 +1610,10 @@
                     if(strikerSel.selectedIndex !== -1) {
                         strikerDisplay.innerText = strikerSel.options[strikerSel.selectedIndex].text;
                     } else {
-                        strikerDisplay.innerText = "Unknown Player";
+                        strikerDisplay.innerText = "Unknown";
                     }
                 } else {
-                    strikerDisplay.innerText = "OUT / Empty";
+                    strikerDisplay.innerText = "OUT/Empty";
                 }
 
                 if(match.currentNonStrikerId) {
@@ -1623,10 +1621,10 @@
                     if(nonStrikerSel.selectedIndex !== -1) {
                          nonStrikerDisplay.innerText = nonStrikerSel.options[nonStrikerSel.selectedIndex].text;
                     } else {
-                        nonStrikerDisplay.innerText = "Unknown Player";
+                        nonStrikerDisplay.innerText = "Unknown";
                     }
                 } else {
-                    nonStrikerDisplay.innerText = "OUT / Empty";
+                    nonStrikerDisplay.innerText = "OUT/Empty";
                 }
             }
         }
@@ -2136,16 +2134,16 @@
                     window.allPlayersData[doc.id] = p;
 
                     const avatarHtml = p.imageUrl 
-                        ? `<img src="${p.imageUrl}" class="w-12 h-12 rounded-full object-cover border-2 border-purple-500 bg-white" alt="${p.name}">`
-                        : `<div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold text-lg text-purple-600">${p.name.charAt(0).toUpperCase()}</div>`;
+                        ? `<img src="${p.imageUrl}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-purple-500 bg-white" alt="${p.name}">`
+                        : `<div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold text-base sm:text-lg text-purple-600">${p.name.charAt(0).toUpperCase()}</div>`;
 
                     list.innerHTML += `
-                        <div class="player-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-t-4 border-purple-500" onclick="openPlayerProfile('${doc.id}')">
-                            <div class="flex items-center space-x-4">
+                        <div class="player-card bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer border-t-4 border-purple-500" onclick="openPlayerProfile('${doc.id}')">
+                            <div class="flex items-center space-x-3 sm:space-x-4">
                                 ${avatarHtml}
                                 <div>
-                                    <h3 class="font-bold text-lg leading-tight player-name">${p.name}</h3>
-                                    <div class="text-xs text-gray-500 mt-1">
+                                    <h3 class="font-bold text-base sm:text-lg leading-tight player-name truncate max-w-[150px] sm:max-w-none">${p.name}</h3>
+                                    <div class="text-[10px] sm:text-xs text-gray-500 mt-1">
                                         <span class="mr-2"><i class="fas fa-baseball-bat-ball text-gray-400"></i> ${p.totalRuns || 0} Runs</span>
                                         <span><i class="fas fa-bullseye text-gray-400"></i> ${p.totalWickets || 0} Wkts</span>
                                     </div>
@@ -2187,10 +2185,10 @@
 
             if(p.imageUrl) {
                 avatarEl.innerHTML = `<img src="${p.imageUrl}" class="w-full h-full object-cover">`;
-                avatarEl.className = "w-24 h-24 rounded-full border-4 border-white dark:border-gray-800 shadow-lg overflow-hidden bg-white";
+                avatarEl.className = "w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-gray-800 shadow-lg overflow-hidden bg-white";
             } else {
                 avatarEl.innerHTML = p.name.charAt(0).toUpperCase();
-                avatarEl.className = "w-24 h-24 bg-white dark:bg-gray-700 rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center text-3xl font-bold text-gray-400 shadow-lg overflow-hidden";
+                avatarEl.className = "w-20 h-20 sm:w-24 sm:h-24 bg-white dark:bg-gray-700 rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center text-3xl font-bold text-gray-400 shadow-lg overflow-hidden";
             }
 
             document.getElementById('profMatches').innerText = p.totalMatches || 0;
@@ -2272,7 +2270,7 @@
                         
                         // Update UI immediately
                         avatarEl.innerHTML = `<img src="${dataUrl}" class="w-full h-full object-cover">`;
-                        avatarEl.className = "w-24 h-24 rounded-full border-4 border-white dark:border-gray-800 shadow-lg overflow-hidden bg-white";
+                        avatarEl.className = "w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-gray-800 shadow-lg overflow-hidden bg-white";
 
                         // Save to Firestore
                         savePlayerImage(dataUrl);
@@ -2430,13 +2428,13 @@
             snap.forEach(doc => {
                 const p = doc.data();
                 list.innerHTML += `
-                    <div class="global-player-card flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-3 rounded border dark:border-gray-600">
+                    <div class="global-player-card flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-2 sm:p-3 rounded border dark:border-gray-600">
                         <div class="flex items-center">
                             <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-xs mr-3">
                                 ${p.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <div class="font-bold text-sm player-name-text">${p.name}</div>
+                                <div class="font-bold text-sm player-name-text truncate max-w-[120px] sm:max-w-none">${p.name}</div>
                                 <div class="text-[10px] text-gray-500">${p.role || 'Player'}</div>
                             </div>
                         </div>
@@ -2663,7 +2661,7 @@
                     list.innerHTML += `
                         <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded border dark:border-gray-600">
                             <div>
-                                <h4 class="font-bold">${t.name}</h4>
+                                <h4 class="font-bold text-sm sm:text-base">${t.name}</h4>
                                 <p class="text-xs text-gray-500">${memberCount} members</p>
                             </div>
                             <div class="flex space-x-2">
@@ -2900,7 +2898,7 @@
             }
         };
 
-        ddocument.getElementById('themeToggle').addEventListener('click', () => {
+        document.getElementById('themeToggle').addEventListener('click', () => {
             document.documentElement.classList.toggle('dark');
         });
 
