@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CricScore Pro - Admin App</title>
     
+    <!-- App Icon -->
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/FRMTxVb2/app-icon-android.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Fonts from Public App for consistency in Loader/Logo -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Oswald:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -22,10 +26,16 @@
                             dark: '#1b5e20',
                             pitch: '#e8f5e9',
                             ball: '#b71c1c'
+                        },
+                        app: {
+                            bg: '#0f172a', 
+                            card: '#1e293b',
+                            primary: '#10b981',
                         }
                     },
                     fontFamily: {
-                        sans: ['Roboto', 'sans-serif'],
+                        sans: ['Roboto', 'sans-serif'], // Keep Roboto as primary for admin content
+                        display: ['Oswald', 'sans-serif'], // For numbers/headings like public app
                     }
                 }
             }
@@ -69,21 +79,23 @@
         .input-group.collapsed { max-height: 0; opacity: 0; margin-bottom: 0; }
         .input-group.expanded { max-height: 100px; opacity: 1; margin-bottom: 1rem; }
 
-        /* Loading Overlay */
+        /* Updated Loading Overlay (Matches Public App) */
         #globalLoader {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #111827;
+            background: #ffffff;
             z-index: 9999;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: white;
             transition: opacity 0.5s ease-out;
+        }
+        .dark #globalLoader {
+            background: #0f172a;
         }
 
         /* Checkbox styling */
@@ -104,24 +116,73 @@
             background-color: #374151;
         }
         
+        /* Chart Bars */
+        .bar-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 150px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            padding-top: 10px;
+        }
+        .bar-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+            min-width: 20px;
+        }
+        .bar {
+            width: 12px;
+            background-color: #3b82f6;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.3s;
+            position: relative;
+        }
+        .bar-label {
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .bar-val {
+            font-size: 9px;
+            margin-bottom: 2px;
+            color: #374151;
+            font-weight: bold;
+        }
+        .dark .bar-label { color: #9ca3af; }
+        .dark .bar-val { color: #d1d5db; }
+        .dark .bar { background-color: #60a5fa; }
+        
         /* Mobile Touch Improvements */
         button { touch-action: manipulation; }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen transition-colors duration-200 pb-16 sm:pb-0">
 
+    <!-- UPDATED LOADER (Same as Public) -->
     <div id="globalLoader">
-        <i class="fas fa-baseball-bat-ball fa-spin text-5xl text-green-500 mb-4"></i>
-        <h2 class="text-xl font-bold tracking-widest">CRICSCORE PRO</h2>
-        <p class="text-gray-400 text-sm mt-2">Connecting...</p>
+        <div class="relative w-24 h-24 mb-4">
+            <div class="absolute inset-0 border-4 border-gray-200 dark:border-gray-800 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
+            <img src="https://i.postimg.cc/FRMTxVb2/app-icon-android.png" class="absolute inset-2 w-20 h-20 rounded-full object-cover p-1">
+        </div>
+        <h1 class="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700" style="font-family: 'Oswald', sans-serif;">CRICSCORE</h1>
+        <p class="text-xs text-gray-400 mt-2 uppercase tracking-widest">Admin Dashboard</p>
     </div>
 
     <nav class="bg-cricket-dark text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-14 sm:h-16">
                 <div class="flex items-center">
-                    <i class="fas fa-baseball-bat-ball text-xl sm:text-2xl mr-2 text-green-400"></i>
-                    <span class="font-bold text-lg sm:text-xl tracking-tight truncate">CricScore Admin</span>
+                    <!-- Updated Logo -->
+                    <div class="relative mr-2">
+                        <img src="https://i.postimg.cc/FRMTxVb2/app-icon-android.png" class="w-8 h-8 rounded-lg shadow-md border border-white/20">
+                        <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-cricket-dark"></div>
+                    </div>
+                    <span class="font-bold text-lg sm:text-xl tracking-tight truncate font-display">CricScore Admin</span>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-4">
                     <button id="themeToggle" class="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"><i class="fas fa-moon"></i></button>
@@ -238,7 +299,7 @@
                     
                     <div class="flex justify-between items-center mt-2">
                         <div class="text-center w-5/12">
-                            <h3 id="teamAName" class="font-bold text-base sm:text-xl truncate leading-tight">Team A</h3>
+                            <h3 id="teamAName" class="font-bold text-base sm:text-xl truncate leading-tight font-display">Team A</h3>
                             <p id="teamAScore" class="text-lg sm:text-3xl font-mono font-bold text-gray-700 dark:text-gray-200 mt-1">-/-</p>
                             <p id="teamAOvers" class="text-xs text-gray-500">0.0 ov</p>
                         </div>
@@ -247,7 +308,7 @@
                             <div id="matchResult" class="text-xs font-medium text-green-600 dark:text-green-400 leading-tight">...</div>
                         </div>
                         <div class="text-center w-5/12">
-                            <h3 id="teamBName" class="font-bold text-base sm:text-xl truncate leading-tight">Team B</h3>
+                            <h3 id="teamBName" class="font-bold text-base sm:text-xl truncate leading-tight font-display">Team B</h3>
                             <p id="teamBScore" class="text-lg sm:text-3xl font-mono font-bold text-gray-700 dark:text-gray-200 mt-1">-/-</p>
                             <p id="teamBOvers" class="text-xs text-gray-500">0.0 ov</p>
                         </div>
@@ -257,6 +318,16 @@
                          <span id="matchCRR">CRR: 0.00</span> 
                          <span id="matchTargetDisplay" class="font-bold text-blue-600 hidden">Target: --</span>
                          <span id="matchEquation" class="text-purple-600 font-bold block sm:inline hidden">Need 0 in 0</span>
+                    </div>
+
+                    <!-- 4s and 6s Counter -->
+                    <div class="mt-2 text-center flex justify-center space-x-4">
+                        <span class="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded font-bold border border-blue-200 dark:border-blue-800">
+                            4s: <span id="inningsFours">0</span>
+                        </span>
+                        <span class="text-xs bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-2 py-0.5 rounded font-bold border border-green-200 dark:border-green-800">
+                            6s: <span id="inningsSixes">0</span>
+                        </span>
                     </div>
 
                 </div>
@@ -345,33 +416,74 @@
                 <!-- SCORECARD DETAIL (Order 2 on Mobile) -->
                 <div class="order-2 lg:order-1 lg:col-span-2 space-y-4">
                     
-                    <!-- NEW TABBED SCORECARD INTERFACE -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-                        <div class="flex border-b dark:border-gray-700">
-                            <button onclick="switchLiveTab('teamA')" id="live-tab-teamA" class="flex-1 py-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 focus:outline-none hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-                                Team A
-                            </button>
-                            <button onclick="switchLiveTab('teamB')" id="live-tab-teamB" class="flex-1 py-3 text-sm font-bold text-gray-500 focus:outline-none hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-                                Team B
-                            </button>
-                        </div>
-                        
-                        <div class="p-0">
-                            <!-- Team A Content -->
-                            <div id="live-content-teamA" class="w-full overflow-x-auto">
-                                <!-- Populated by JS -->
+                    <!-- Feature Tabs -->
+                    <div class="flex space-x-1 bg-gray-200 dark:bg-gray-700 p-1 rounded-lg">
+                        <button onclick="switchMatchTab('scorecard')" id="tab-btn-scorecard" class="flex-1 py-1.5 text-xs sm:text-sm font-bold rounded shadow bg-white dark:bg-gray-600 text-gray-800 dark:text-white">Scorecard</button>
+                        <button onclick="switchMatchTab('commentary')" id="tab-btn-commentary" class="flex-1 py-1.5 text-xs sm:text-sm font-bold rounded text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-600/50">Commentary</button>
+                        <button onclick="switchMatchTab('analysis')" id="tab-btn-analysis" class="flex-1 py-1.5 text-xs sm:text-sm font-bold rounded text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-600/50">Analysis</button>
+                    </div>
+
+                    <!-- TAB: SCORECARD -->
+                    <div id="match-tab-scorecard" class="match-tab-content">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                            <div class="flex border-b dark:border-gray-700">
+                                <button onclick="switchLiveTab('teamA')" id="live-tab-teamA" class="flex-1 py-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 focus:outline-none hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                    Team A
+                                </button>
+                                <button onclick="switchLiveTab('teamB')" id="live-tab-teamB" class="flex-1 py-3 text-sm font-bold text-gray-500 focus:outline-none hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                    Team B
+                                </button>
                             </div>
-                            <!-- Team B Content -->
-                            <div id="live-content-teamB" class="w-full hidden overflow-x-auto">
-                                <!-- Populated by JS -->
+                            
+                            <div class="p-0">
+                                <!-- Team A Content -->
+                                <div id="live-content-teamA" class="w-full overflow-x-auto">
+                                    <!-- Populated by JS -->
+                                </div>
+                                <!-- Team B Content -->
+                                <div id="live-content-teamB" class="w-full hidden overflow-x-auto">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 overflow-hidden mt-4">
+                             <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Recent Balls</h4>
+                             <div id="recentBallsContainer" class="flex space-x-2 pb-2 overflow-x-auto hide-scroll"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: COMMENTARY -->
+                    <div id="match-tab-commentary" class="match-tab-content hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 h-[500px] overflow-y-auto">
+                            <h4 class="text-sm font-bold mb-4 border-b dark:border-gray-700 pb-2">Ball by Ball Commentary</h4>
+                            <div id="commentaryList" class="space-y-3">
+                                <p class="text-center text-gray-500 text-sm">Waiting for match to start...</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 overflow-hidden">
-                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Recent Balls</h4>
-                         <div id="recentBallsContainer" class="flex space-x-2 pb-2 overflow-x-auto hide-scroll"></div>
+                    <!-- TAB: ANALYSIS -->
+                    <div id="match-tab-analysis" class="match-tab-content hidden">
+                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-4">
+                            <h4 class="text-sm font-bold mb-2">Partnership</h4>
+                            <div id="partnershipWidget" class="text-center p-4 bg-gray-50 dark:bg-gray-700/30 rounded border dark:border-gray-700">
+                                <p class="text-xs text-gray-500">Current Wicket</p>
+                                <div class="text-2xl font-bold text-indigo-600" id="analysisPartnershipRuns">0</div>
+                                <p class="text-xs text-gray-400">runs from <span id="analysisPartnershipBalls">0</span> balls</p>
+                            </div>
+                         </div>
+
+                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <h4 class="text-sm font-bold mb-2">Runs Per Over</h4>
+                            <div class="w-full overflow-x-auto">
+                                <div id="analysisRPOChart" class="bar-container">
+                                    <!-- Bars will be injected here -->
+                                </div>
+                            </div>
+                         </div>
                     </div>
+
                 </div>
 
             </div>
@@ -910,7 +1022,7 @@
 
         window.handleLogout = () => {
             document.getElementById('globalLoader').style.opacity = '1';
-            document.getElementById('globalLoader').style.display = 'flex';
+            // document.getElementById('globalLoader').style.display = 'flex'; // Removed to use CSS transition correctly
             setTimeout(() => signOut(auth), 500);
         };
 
@@ -988,8 +1100,8 @@
         function calculateMatchState(matchData) {
             const state = {
                 innings: {
-                    1: { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0, legalBalls: 0 },
-                    2: { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0, legalBalls: 0 }
+                    1: { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0, legalBalls: 0, fours: 0, sixes: 0 },
+                    2: { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0, legalBalls: 0, fours: 0, sixes: 0 }
                 },
                 currentInnings: matchData.currentInnings || 1,
                 batsmen: {}, 
@@ -998,12 +1110,22 @@
                 nonStrikerId: matchData.currentNonStrikerId,
                 currentBowlerId: matchData.currentBowlerId,
                 timeline: [],
-                dismissedPlayers: []
+                dismissedPlayers: [],
+                partnerships: {}, // Store partnership data
+                overRuns: { 1: [], 2: [] } // Store runs per over for each innings
             };
 
             const history = matchData.history || [];
             
-            history.forEach(ball => {
+            // Partnership tracking variables
+            let currentPartnershipRuns = 0;
+            let currentPartnershipBalls = 0;
+            let lastWicketIndex = -1;
+
+            let currentOverRuns = 0;
+            let ballsInOver = 0;
+
+            history.forEach((ball, index) => {
                 const inn = ball.innings;
                 const s = state.innings[inn];
                 if(!s) return;
@@ -1045,8 +1167,22 @@
                     bowler.balls++;
                 }
                 
-                if (batRuns === 4) striker.fours++;
-                if (batRuns === 6) striker.sixes++;
+                // Count 4s and 6s
+                if (batRuns === 4) {
+                     striker.fours++;
+                     s.fours++; 
+                }
+                if (batRuns === 6) {
+                     striker.sixes++;
+                     s.sixes++; 
+                }
+
+                // Partnership Logic
+                currentPartnershipRuns += totalRunsForBall;
+                if(isLegalDelivery) currentPartnershipBalls++;
+
+                // Over Calculation Logic
+                currentOverRuns += totalRunsForBall;
 
                 if (ball.isWicket) {
                     s.wickets++;
@@ -1056,6 +1192,10 @@
                     const victimId = ball.wicketVictimId || ball.strikerId;
                     state.dismissedPlayers.push(victimId);
                     if(state.batsmen[victimId]) state.batsmen[victimId].out = ball.wicketType;
+
+                    // Reset Partnership on Wicket
+                    currentPartnershipRuns = 0;
+                    currentPartnershipBalls = 0;
                 }
 
                 s.runs += totalRunsForBall;
@@ -1063,14 +1203,33 @@
                 if (isLegalDelivery) {
                     s.balls++;
                     s.legalBalls++;
-                    if (s.balls % 6 === 0) {
+                    ballsInOver++;
+                    
+                    // Check Over End
+                    if (ballsInOver === 6) {
                         s.overs++;
                         s.balls = 0;
+                        
+                        // Push to over runs array
+                        if(!state.overRuns[inn]) state.overRuns[inn] = [];
+                        state.overRuns[inn].push(currentOverRuns);
+                        
+                        // Reset over tracking
+                        currentOverRuns = 0;
+                        ballsInOver = 0;
                     }
                 }
                 
                 state.timeline.unshift(ball); 
             });
+
+            // Handle current ongoing over for chart
+            if(ballsInOver > 0) {
+                 if(!state.overRuns[state.currentInnings]) state.overRuns[state.currentInnings] = [];
+                 state.overRuns[state.currentInnings].push(currentOverRuns);
+            }
+
+            state.currentPartnership = { runs: currentPartnershipRuns, balls: currentPartnershipBalls };
 
             state.innings[1].displayOvers = `${state.innings[1].overs}.${state.innings[1].balls}`;
             state.innings[2].displayOvers = `${state.innings[2].overs}.${state.innings[2].balls}`;
@@ -1117,6 +1276,31 @@
             if(viewName === 'tournaments') loadTournaments();
             if(viewName === 'admin') loadTeamsForMatch();
             if(viewName === 'players') loadAllPlayers();
+        };
+        
+        window.switchMatchTab = (tabName) => {
+            document.querySelectorAll('.match-tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`match-tab-${tabName}`).classList.remove('hidden');
+            
+            // Update button styles
+            ['scorecard', 'commentary', 'analysis'].forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if(t === tabName) {
+                    btn.classList.remove('text-gray-500', 'dark:text-gray-400', 'hover:bg-white/50', 'dark:hover:bg-gray-600/50');
+                    btn.classList.add('shadow', 'bg-white', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-white');
+                } else {
+                    btn.classList.add('text-gray-500', 'dark:text-gray-400', 'hover:bg-white/50', 'dark:hover:bg-gray-600/50');
+                    btn.classList.remove('shadow', 'bg-white', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-white');
+                }
+            });
+
+            // Trigger Specific renders if needed
+            if(tabName === 'analysis' && currentMatchData && currentMatchState) {
+                renderAnalysis(currentMatchData, currentMatchState);
+            }
+            if(tabName === 'commentary' && currentMatchData) {
+                renderCommentary(currentMatchData.history);
+            }
         };
 
         const originalShowAdminTab = window.showAdminTab || function(){};
@@ -1171,17 +1355,17 @@
                     ` : ''}
                     <div class="p-3 sm:p-4 cursor-pointer" onclick="openMatch('${match.id}')">
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-[10px] font-bold uppercase text-gray-400 tracking-wider truncate max-w-[70%]">${match.tournamentName || 'Friendly'}</span>
+                            <span class="text-[10px] font-bold uppercase text-gray-400 tracking-wider truncate max-w-[70%] font-display">${match.tournamentName || 'Friendly'}</span>
                             ${isLive ? '<span class="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>' : ''}
                         </div>
                         <div class="flex justify-between items-center">
                             <div class="flex flex-col items-start w-2/5">
-                                <h3 class="font-bold text-base sm:text-lg leading-tight truncate w-full" title="${match.teamAName}">${match.teamAName}</h3>
+                                <h3 class="font-bold text-base sm:text-lg leading-tight truncate w-full font-display" title="${match.teamAName}">${match.teamAName}</h3>
                                 <p class="text-gray-600 dark:text-gray-400 text-sm mt-0.5">${match.score?.teamA || '0/0'}</p>
                             </div>
                             <span class="text-gray-300 font-bold text-sm mx-1">VS</span>
                             <div class="flex flex-col items-end w-2/5 text-right">
-                                <h3 class="font-bold text-base sm:text-lg leading-tight truncate w-full" title="${match.teamBName}">${match.teamBName}</h3>
+                                <h3 class="font-bold text-base sm:text-lg leading-tight truncate w-full font-display" title="${match.teamBName}">${match.teamBName}</h3>
                                 <p class="text-gray-600 dark:text-gray-400 text-sm mt-0.5">${match.score?.teamB || '0/0'}</p>
                             </div>
                         </div>
@@ -1299,6 +1483,9 @@
             currentMatchId = matchId;
             switchView('matchDetail');
             
+            // Default to scorecard tab
+            switchMatchTab('scorecard');
+
             if(currentMatchUnsubscribe) currentMatchUnsubscribe();
             
             currentMatchUnsubscribe = onSnapshot(doc(db, getCollPath('matches'), matchId), (docSnap) => {
@@ -1308,6 +1495,13 @@
                     renderScoreboard(currentMatchData, currentMatchState);
                     updateControlSelects(currentMatchData);
                     
+                    // Render Analysis/Commentary if active
+                    const activeTab = document.querySelector('.match-tab-content:not(.hidden)');
+                    if(activeTab) {
+                        if(activeTab.id === 'match-tab-commentary') renderCommentary(currentMatchData.history);
+                        if(activeTab.id === 'match-tab-analysis') renderAnalysis(currentMatchData, currentMatchState);
+                    }
+
                     const controls = document.getElementById('scoringPanel');
 
                     if(currentUser && currentMatchData.status === 'live') {
@@ -1432,6 +1626,11 @@
             const crr = (innData.runs / (innData.overs + (innData.balls/6)) || 0).toFixed(2);
             document.getElementById('matchCRR').innerText = `CRR: ${crr}`;
 
+            // --- Update Boundary Counters ---
+            document.getElementById('inningsFours').innerText = innData.fours || 0;
+            document.getElementById('inningsSixes').innerText = innData.sixes || 0;
+
+
             if (inn === 2 || match.status === 'completed') {
                 const target = state.innings[1].runs + 1;
                 document.getElementById('matchTargetDisplay').innerText = `Target: ${target}`;
@@ -1440,7 +1639,7 @@
                 if (match.status === 'live') {
                     const runsNeed = Math.max(0, target - state.innings[2].runs);
                     const ballsRem = (match.oversLimit * 6) - (state.innings[2].overs * 6 + state.innings[2].balls);
-                    document.getElementById('matchEquation').innerText = `Need ${runsNeed} runs in ${ballsRem} balls`;
+                    document.getElementById('matchEquation').innerText = `Need ${runsNeed} in ${ballsRem}`;
                     document.getElementById('matchEquation').classList.remove('hidden');
                 } else {
                     document.getElementById('matchEquation').classList.add('hidden');
@@ -1449,6 +1648,92 @@
                 document.getElementById('matchTargetDisplay').classList.add('hidden');
                 document.getElementById('matchEquation').classList.add('hidden');
             }
+        }
+
+        // ==========================================
+        // FEATURE: COMMENTARY GENERATOR
+        // ==========================================
+        function renderCommentary(history) {
+            const container = document.getElementById('commentaryList');
+            if(!history || history.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 text-sm">Match not started</p>';
+                return;
+            }
+
+            let html = '';
+            // Show latest 50 balls
+            history.slice().reverse().slice(0, 50).forEach(ball => {
+                const over = Math.floor((ball.id - history[0].id) / 1000); // Fake logic for simple over count if needed, but we rely on text
+                
+                let text = "";
+                let badge = "";
+                
+                // Construct commentary text
+                if (ball.isWicket) {
+                    badge = `<span class="bg-red-500 text-white text-[10px] font-bold px-1.5 rounded">W</span>`;
+                    text = `<b>${ball.bowlerName}</b> to <b>${ball.strikerName}</b>, <b>OUT!</b> ${ball.wicketType.toUpperCase()}!`;
+                } else if (ball.runs === 4) {
+                    badge = `<span class="bg-blue-500 text-white text-[10px] font-bold px-1.5 rounded">4</span>`;
+                    text = `<b>${ball.bowlerName}</b> to <b>${ball.strikerName}</b>, <b>FOUR</b> runs! Shot to the boundary.`;
+                } else if (ball.runs === 6) {
+                    badge = `<span class="bg-green-500 text-white text-[10px] font-bold px-1.5 rounded">6</span>`;
+                    text = `<b>${ball.bowlerName}</b> to <b>${ball.strikerName}</b>, <b>SIX</b>! Massive hit!`;
+                } else if (ball.extrasType) {
+                    badge = `<span class="bg-yellow-200 text-yellow-800 text-[10px] font-bold px-1.5 rounded">${ball.extrasType}</span>`;
+                    text = `<b>${ball.bowlerName}</b> to <b>${ball.strikerName}</b>, ${ball.extrasType}.`;
+                } else if (ball.runs === 0) {
+                    badge = `<span class="bg-gray-200 text-gray-600 text-[10px] font-bold px-1.5 rounded">0</span>`;
+                    text = `<b>${ball.bowlerName}</b> to <b>${ball.strikerName}</b>, no run.`;
+                } else {
+                    badge = `<span class="bg-gray-200 text-gray-600 text-[10px] font-bold px-1.5 rounded">${ball.runs}</span>`;
+                    const s = ball.runs > 1 ? 'runs' : 'run';
+                    text = `<b>${ball.bowlerName}</b> to <b>${ball.strikerName}</b>, ${ball.runs} ${s}.`;
+                }
+
+                html += `
+                    <div class="flex space-x-3 items-start border-b dark:border-gray-700 pb-2">
+                        <div class="mt-1">${badge}</div>
+                        <div class="text-sm text-gray-700 dark:text-gray-300">
+                             ${text}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // ==========================================
+        // FEATURE: ANALYSIS / CHARTS
+        // ==========================================
+        function renderAnalysis(match, state) {
+            // 1. Partnership
+            document.getElementById('analysisPartnershipRuns').innerText = state.currentPartnership.runs;
+            document.getElementById('analysisPartnershipBalls').innerText = state.currentPartnership.balls;
+
+            // 2. Run Rate Bar Chart
+            const inn = state.currentInnings;
+            const overRuns = state.overRuns[inn] || [];
+            
+            const chartContainer = document.getElementById('analysisRPOChart');
+            if(overRuns.length === 0) {
+                chartContainer.innerHTML = '<p class="text-xs text-center w-full mt-4 text-gray-400">No data yet</p>';
+                return;
+            }
+
+            const maxRuns = Math.max(...overRuns, 10); // Scale
+            let chartHtml = '';
+            
+            overRuns.forEach((runs, idx) => {
+                const heightPct = (runs / maxRuns) * 100;
+                chartHtml += `
+                    <div class="bar-col">
+                        <span class="bar-val">${runs}</span>
+                        <div class="bar" style="height: ${heightPct}%;"></div>
+                        <span class="bar-label">${idx+1}</span>
+                    </div>
+                `;
+            });
+            chartContainer.innerHTML = chartHtml;
         }
 
         function renderLiveFullScorecard(match, state) {
@@ -1464,8 +1749,9 @@
                                     <th class="text-left py-2 px-2">Batting</th>
                                     <th class="text-right py-2 px-1">R</th>
                                     <th class="text-right py-2 px-1">B</th>
-                                    <th class="text-right py-2 px-1 hidden sm:table-cell">4s</th>
-                                    <th class="text-right py-2 px-1 hidden sm:table-cell">6s</th>
+                                    <!-- REMOVED HIDDEN CLASS FOR 4s/6s -->
+                                    <th class="text-right py-2 px-1 text-[10px] sm:text-sm">4s</th>
+                                    <th class="text-right py-2 px-1 text-[10px] sm:text-sm">6s</th>
                                     <th class="text-right py-2 px-1">SR</th>
                                 </tr>
                             </thead>
@@ -1504,13 +1790,14 @@
                     batHtml += `
                         <tr class="${rowClass}">
                             <td class="py-2 px-2">
-                                <div class="font-bold text-gray-800 dark:text-gray-200 truncate max-w-[120px] sm:max-w-none">${nameDisplay}</div>
+                                <div class="font-bold text-gray-800 dark:text-gray-200 truncate max-w-[100px] sm:max-w-none">${nameDisplay}</div>
                                 <div class="text-[10px] text-gray-400 leading-none">${status}</div>
                             </td>
                             <td class="text-right font-bold px-1">${runs}</td>
                             <td class="text-right text-gray-500 px-1">${balls}</td>
-                            <td class="text-right text-gray-400 px-1 hidden sm:table-cell">${fours}</td>
-                            <td class="text-right text-gray-400 px-1 hidden sm:table-cell">${sixes}</td>
+                            <!-- REMOVED HIDDEN CLASS FOR 4s/6s -->
+                            <td class="text-right text-gray-400 px-1 text-[10px] sm:text-sm">${fours}</td>
+                            <td class="text-right text-gray-400 px-1 text-[10px] sm:text-sm">${sixes}</td>
                             <td class="text-right text-xs text-gray-500 px-1">${sr}</td>
                         </tr>
                     `;
@@ -1544,7 +1831,7 @@
                         
                         bowlHtml += `
                             <tr class="border-b dark:border-gray-700 ${isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : ''}">
-                                <td class="py-2 px-2 font-bold truncate max-w-[120px] sm:max-w-none ${isCurrent ? 'text-blue-700 dark:text-blue-300' : ''}">${p.name}</td>
+                                <td class="py-2 px-2 font-bold truncate max-w-[100px] sm:max-w-none ${isCurrent ? 'text-blue-700 dark:text-blue-300' : ''}">${p.name}</td>
                                 <td class="text-right px-1">${overs}</td>
                                 <td class="text-right px-1 text-gray-400">${stats.maidens}</td>
                                 <td class="text-right px-1">${stats.runs}</td>
